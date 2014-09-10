@@ -36,6 +36,10 @@
 #define PK_XLOG_INFO(fmt, args...)
 #endif
 
+#ifdef USING_TFA9890_EXTAMP
+extern u8 Tfa9890_IsFound(void);
+#endif
+
 kal_bool searchMainSensor = KAL_TRUE;
 
 int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSensorName, BOOL On, char* mode_name)
@@ -73,10 +77,17 @@ u32 pinSet[2][8] = {
                     },
                    };
 
-
-
-
-
+#ifdef USING_TFA9890_EXTAMP
+   printk("[LHJ_TFA9890][%s][L%d]Tfa9890 found:%d",__func__,__LINE__,Tfa9890_IsFound());
+   if(Tfa9890_IsFound())
+   {
+       //pinSet[1][IDX_PS_CMPDN]=GPIO64;
+   }
+   else
+   {
+       pinSet[1][IDX_PS_CMPDN]=GPIO18;
+   }
+#endif
 
 
     if (DUAL_CAMERA_MAIN_SENSOR == SensorIdx){

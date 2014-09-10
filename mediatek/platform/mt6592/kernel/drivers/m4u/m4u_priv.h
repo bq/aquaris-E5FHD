@@ -171,8 +171,6 @@ typedef struct
 #define MTK_M4U_T_DUMP_PAGETABLE      _IOW(MTK_M4U_MAGICNO, 21, int)
 #define MTK_M4U_T_REGISTER_BUFFER     _IOW(MTK_M4U_MAGICNO, 22, int)
 #define MTK_M4U_T_CACHE_FLUSH_ALL     _IOW(MTK_M4U_MAGICNO, 23, int)
-#define MTK_M4U_T_REG_SET             _IOW(MTK_M4U_MAGICNO, 24, int)
-#define MTK_M4U_T_REG_GET             _IOW(MTK_M4U_MAGICNO, 25, int)
 
 
 int m4u_do_query_mva(M4U_MODULE_ID_ENUM eModuleID, 
@@ -204,6 +202,7 @@ int m4u_do_insert_seq_range(M4U_PORT_ID_ENUM eModuleID,
                              unsigned int MVAEnd, 
                              unsigned int entryCount);
 int m4u_module_2_m4u_id(M4U_MODULE_ID_ENUM emoduleID);
+int m4u_do_check_port_va_or_pa(M4U_PORT_STRUCT* pM4uPort);
 int m4u_do_config_port(M4U_PORT_STRUCT* pM4uPort);
 
 int m4u_do_monitor_start(int m4u_id);

@@ -56,8 +56,11 @@
 /***************************************************
 *(1)->Use Ref Mic as main mic; (0)->Use original main mic.
 *****************************************************/
+#ifdef USE_FOR_BULMA_HE
+#define USE_REFMIC_IN_LOUDSPK       (0)
+#else
 #define USE_REFMIC_IN_LOUDSPK       (1)
-
+#endif
 /****************************************************
 * Define this will enable audio compensation filter for loudspeaker
 *Please see ACF Document for detail.

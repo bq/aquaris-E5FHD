@@ -513,47 +513,107 @@ isAEEnabled()
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 const MINT32*
-getAEActiveCycle(MBOOL bVideMode, MBOOL bHighFps)
+getAEActiveCycle(MBOOL bVideMode, MBOOL bHighFps, MINT32 i4SensorDelayFrame)
 {
-    if(bVideMode == MTRUE) {
+    if(i4SensorDelayFrame == 0x02) {             // sensor 3 cycle
+        if(bVideMode == MTRUE) {
+            if(bHighFps == MTRUE) {
+                // High frame rate AAA cycle
+                static MINT32 i4AEHighFpsActiveCycle[AE_CYCLE_NUM] =
+                {
+                    AE_CYCLE_ALGO,
+                    AE_CYCLE_DUMMY,  // use I2C
+                    AE_CYCLE_DUMMY,  // use I2C
+                    AE_CYCLE_FLARE,
+                    AE_CYCLE_DUMMY,
+                    AE_CYCLE_DUMMY,
+                    AE_CYCLE_ALGO,
+                    AE_CYCLE_DUMMY,  // use I2C
+                    AE_CYCLE_DUMMY,  // use I2C
+                    AE_CYCLE_FLARE,
+                    AE_CYCLE_DUMMY,
+                    AE_CYCLE_DUMMY,
+                };
+                return (&i4AEHighFpsActiveCycle[0]);        
+            } else {
+               // normal mode AAA cycle
+                static MINT32 i4AEVideoActiveCycle[AE_CYCLE_NUM] =
+                {
+                    AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                    AE_CYCLE_FLARE,                      // use I2C, flare
+                    AE_CYCLE_FLARE,
+                    AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                    AE_CYCLE_FLARE,                      // use I2C, flare
+                    AE_CYCLE_FLARE,
+                    AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                    AE_CYCLE_FLARE,                      // use I2C, flare
+                    AE_CYCLE_FLARE,
+                    AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                    AE_CYCLE_FLARE,                      // use I2C, flare
+                    AE_CYCLE_FLARE,
+                };
+                return (&i4AEVideoActiveCycle[0]);        
+            }
+        } else {
+            // Default AAA cycle
+            static MINT32 i4AEPreviewActiveCycle[AE_CYCLE_NUM] =
+            {
+                AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                AE_CYCLE_FLARE,                      // use I2C, flare
+                AE_CYCLE_FLARE,
+                AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                AE_CYCLE_FLARE,                      // use I2C, flare
+                AE_CYCLE_FLARE,
+                AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                AE_CYCLE_FLARE,                      // use I2C, flare
+                AE_CYCLE_FLARE,
+                AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                AE_CYCLE_FLARE,                      // use I2C, flare
+                AE_CYCLE_FLARE,                
+            };
+
+            return (&i4AEPreviewActiveCycle[0]);
+        }
+    } else {    // sensor not 3 cycle   // example 4 cycle
         if(bHighFps == MTRUE) {
             // High frame rate AAA cycle
-            static MINT32 i4AEHighFpsActiveCycle[AE_CYCLE_NUM] =
+            static MINT32 i4AEHighFps4ActiveCycle[AE_CYCLE_NUM] =
             {
                 AE_CYCLE_ALGO,
                 AE_CYCLE_DUMMY,  // use I2C
                 AE_CYCLE_DUMMY,  // use I2C
+                AE_CYCLE_DUMMY,  // use I2C
                 AE_CYCLE_FLARE,
                 AE_CYCLE_DUMMY,
+                AE_CYCLE_ALGO,
+                AE_CYCLE_DUMMY,  // use I2C
+                AE_CYCLE_DUMMY,  // use I2C
+                AE_CYCLE_DUMMY,  // use I2C
+                AE_CYCLE_FLARE,
                 AE_CYCLE_DUMMY,
             };
-            return (&i4AEHighFpsActiveCycle[0]);        
+
+            return (&i4AEHighFps4ActiveCycle[0]);        
         } else {
-           // normal mode AAA cycle
-            static MINT32 i4AEVideoActiveCycle[AE_CYCLE_NUM] =
+            // Default AAA cycle
+            static MINT32 i4AE4ActiveCycle[AE_CYCLE_NUM] =
             {
                 AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
-                AE_CYCLE_FLARE,                      // use I2C, flare
+                AE_CYCLE_FLARE,                            // use I2C
+                AE_CYCLE_FLARE,                            // use I2C
                 AE_CYCLE_FLARE,
                 AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
-                AE_CYCLE_FLARE,                      // use I2C, flare
+                AE_CYCLE_FLARE,                            // use I2C
+                AE_CYCLE_FLARE,                            // use I2C
+                AE_CYCLE_FLARE,
+                AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
+                AE_CYCLE_FLARE,                            // use I2C
+                AE_CYCLE_FLARE,                            // use I2C
                 AE_CYCLE_FLARE,
             };
-            return (&i4AEVideoActiveCycle[0]);        
-        }
-    } else {
-        // Default AAA cycle
-        static MINT32 i4AEPreviewActiveCycle[AE_CYCLE_NUM] =
-        {
-            AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
-            AE_CYCLE_FLARE,                      // use I2C, flare
-            AE_CYCLE_FLARE,
-            AE_CYCLE_ALGO_CONFIGURE|AE_CYCLE_FLARE,    // use I2C
-            AE_CYCLE_FLARE,                      // use I2C, flare
-            AE_CYCLE_FLARE,
-        };
 
-        return (&i4AEPreviewActiveCycle[0]);
+            return (&i4AE4ActiveCycle[0]);
+        }    
     }
 }
 

@@ -66,10 +66,13 @@
 extern struct tpd_device *tpd;
 
 #ifdef Himax_Gesture
-//extern int wake_switch;
-//extern int gesture_switch;
-int wake_switch = 1;//wangli_20140530
-int gesture_switch = 1;
+#define GESTURE_DOUBLE_TAP 	0xFC
+#define GESTURE_NONE 		0xFB
+#define GESTURE_Q 		0xFA
+#define GESTURE_E 		0xF9
+#define GESTURE_Z 		0xF8
+
+unsigned char GestureEnable = 0;//wangli_20140627
 #endif
 
 //gionee songll 20131128 porting from mt6577 begin
@@ -101,6 +104,107 @@ extern int gn_set_device_info(struct gn_device_info gn_dev_info);
 #define HX_TP_BIN_CHECKSUM_HW		2
 #define HX_TP_BIN_CHECKSUM_CRC	    3
 
+/********* Start:register miscdevice for user space to upgrade FW *********/
+//#define CONFIG_SUPPORT_CTP_UPG	//wangli_20140619
+
+#ifdef CONFIG_SUPPORT_CTP_UPG
+
+#include <linux/device.h>
+#include <linux/miscdevice.h>
+#include <asm/uaccess.h>
+
+#define TOUCH_IOC_MAGIC 'H'
+#define TPD_UPGRADE_CKT _IO(TOUCH_IOC_MAGIC,2)
+
+static unsigned char fw_upgrade_ioctl(unsigned char *i_buf,unsigned int i_length);
+static DEFINE_MUTEX(fwupgrade_mutex);
+atomic_t upgrading;
+
+static int tpd_misc_open(struct inode *inode,struct file *file)
+{
+	return nonseekable_open(inode,file);
+}
+
+static int tpd_misc_release(struct inode *inode,struct file *file)
+{
+	return 0;
+}
+
+static long tpd_unlocked_ioctl(struct file *file,unsigned int cmd,unsigned long arg)
+{
+	void __user *data;
+
+	long err = 0;
+	int size = 0;
+	char * ctpdata = NULL;
+
+	if(_IOC_DIR(cmd) & _IOC_READ)
+	{
+		err = !access_ok(VERIFY_WRITE,(void __user *)arg,_IOC_SIZE(cmd));
+	}
+	else if(_IOC_DIR(cmd) & _IOC_WRITE)
+	{
+		err = !access_ok(VERIFY_READ,(void __user *)arg,_IOC_SIZE(cmd));
+	}
+
+	if(err)
+	{
+		printk("tpd: access error: %08x,(%2d,%2d)\n",cmd,_IOC_DIR(cmd),_IOC_SIZE(cmd));
+		return -EFAULT;
+	}
+
+	switch(cmd)
+	{
+		case TPD_UPGRADE_CKT:
+			data = (void __user *)arg;
+			if(NULL == data)
+			{
+				err = -EINVAL;
+				break;
+			}
+			if(copy_from_user(&size,data,sizeof(int)))
+			{
+				err = -EFAULT;
+				break;
+			}
+			ctpdata = kmalloc(size,GFP_KERNEL);
+			if( NULL == ctpdata)
+			{
+				err = -EFAULT;
+				break;
+			}
+
+			if(copy_from_user(ctpdata,data+sizeof(int),size))
+			{
+				kfree(ctpdata);
+				err = -EFAULT;
+				break;
+			}
+			err = fw_upgrade_ioctl(ctpdata,size);
+			kfree(ctpdata);
+			break;
+		default:
+			printk("tpd: unknown IOCTL: %0x08x\n",cmd);
+			err = -ENOIOCTLCMD;
+			break;		
+	}
+
+	return err;
+}
+
+static struct file_operations tpd_fops = {
+	.open = tpd_misc_open,
+	.release = tpd_misc_release,
+	.unlocked_ioctl = tpd_unlocked_ioctl,
+};
+
+static struct miscdevice tpd_misc_device = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = "hx8527",
+	.fops = &tpd_fops,
+};
+#endif
+/********* end: =============== wangli_20140616 ==================*********/
 
 //=============================================================================================================
 //
@@ -417,7 +521,7 @@ bool himax_debug_flag=false;
 	static int fw_size=0;
 	static unsigned char i_CTPM_FW[]=
 	{
-	#include "CKT-BQ6_Truly_CT3S1403_170D_C03_2014-05-30_E.i" //Paul Check //wangli_20140530
+	#include "FW_CKT-BQ6_Truly_CT3S1403_1718_C05_2014-06-23_E.i" //Paul Check //wangli_20140613
 	};
 	
 	
@@ -461,6 +565,7 @@ static int p_latest=1;
 static int p_prev = 0;
 static bool is_himax = true;
 
+
 int pointFromAA(void)
 {
     int i;
@@ -500,7 +605,6 @@ int pointFromAA(void)
 }
 
 #endif
-
 
 	
 static int i2c_himax_write(struct i2c_client *client, uint8_t command,uint8_t length, uint8_t *data)
@@ -2274,6 +2378,235 @@ static bool i_Check_FW_Version()
 	return false;
 }
 
+
+#ifdef CONFIG_SUPPORT_CTP_UPG
+//wangli_20140618========================================================================================
+int fw_upgrade_ioctl_with_i_file(unsigned char *i_buf,unsigned int i_length)
+{
+	printk("2.==== GO fw_upgrade_ioctl_with_i_file ====\n");
+	unsigned char* ImageBuffer = i_buf;
+	int fullFileLength = i_length;
+
+	int i, j;
+	uint8_t cmd[5], last_byte, prePage;
+	int FileLength;
+	uint8_t checksumResult = 0;
+
+	//Try 3 Times
+	for (j = 0; j < 3; j++) 
+	{
+		if(IC_CHECKSUM == HX_TP_BIN_CHECKSUM_CRC)
+		{
+			FileLength = fullFileLength;
+		}
+		else
+		{
+			FileLength = fullFileLength - 2;
+		}
+
+		#ifdef HX_RST_PIN_FUNC
+		himax_HW_reset();
+		#endif
+
+		if( himax_i2c_write_data(i2c_client, 0x81, 0, &(cmd[0])) < 0 )
+		{
+			printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+			return -1;
+		}
+
+		mdelay(120);
+
+		himax_unlock_flash(); //ok
+
+		cmd[0] = 0x05;
+		cmd[1] = 0x00;
+		cmd[2] = 0x02;
+		if( himax_i2c_write_data(i2c_client, 0x43, 3, &(cmd[0])) < 0 )
+		{
+			printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+			return -1;
+		}
+
+		if( himax_i2c_write_data(i2c_client, 0x4F, 0, &(cmd[0])) < 0 )
+		{
+
+			printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+			return -1;
+		}
+		mdelay(50);
+
+		himax_ManualMode(1);
+		himax_FlashMode(1);
+
+		FileLength = (FileLength + 3) / 4;
+		printk("======== FileLength= %d ========\n",FileLength);//wl
+		for (i = 0, prePage = 0; i < FileLength; i++) 
+		{
+			last_byte = 0;
+
+			cmd[0] = i & 0x1F;
+			if (cmd[0] == 0x1F || i == FileLength - 1)
+			{
+				last_byte = 1;
+			}
+			cmd[1] = (i >> 5) & 0x1F;
+			cmd[2] = (i >> 10) & 0x1F;
+
+
+
+
+
+			if( himax_i2c_write_data(i2c_client, 0x44, 3, &(cmd[0])) < 0 )
+			{
+				printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+				return -1;
+			}
+
+			if (prePage != cmd[1] || i == 0) 
+			{
+				prePage = cmd[1];
+
+				cmd[0] = 0x01;
+				cmd[1] = 0x09;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+
+				cmd[0] = 0x01;
+				cmd[1] = 0x0D;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+
+				cmd[0] = 0x01;
+				cmd[1] = 0x09;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+			}
+
+			memcpy(&cmd[0], &ImageBuffer[4*i], 4);//Paul
+			if( himax_i2c_write_data(i2c_client, 0x45, 4, &(cmd[0])) < 0 )
+			{
+				printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+				return -1;
+			}
+
+			cmd[0] = 0x01;
+			cmd[1] = 0x0D;//cmd[2] = 0x02;
+			if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+			{
+				printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+				return -1;
+			}
+
+			cmd[0] = 0x01;
+			cmd[1] = 0x09;//cmd[2] = 0x02;
+			if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+			{
+				printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+				return -1;
+			}
+
+			if (last_byte == 1) 
+			{
+				cmd[0] = 0x01;
+				cmd[1] = 0x01;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+
+				cmd[0] = 0x01;
+				cmd[1] = 0x05;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+
+				cmd[0] = 0x01;
+				cmd[1] = 0x01;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+
+				cmd[0] = 0x01;
+				cmd[1] = 0x00;//cmd[2] = 0x02;
+				if( himax_i2c_write_data(i2c_client, 0x43, 2, &(cmd[0])) < 0 )
+				{
+					printk(KERN_ERR "[TP] %s: i2c access fail!\n", __func__);
+					return -1;
+				}
+				
+				mdelay(10);
+				if (i == (FileLength - 1))
+				{
+					//update time too long and need kick dog
+					mtk_wdt_restart(WK_WDT_EXT_TYPE); //kick external WDT
+					mtk_wdt_restart(WK_WDT_LOC_TYPE); //local WDT CPU0/CPU1 kick
+
+					himax_FlashMode(0);
+					himax_ManualMode(0);
+					checksumResult = himax_calculateChecksum(ImageBuffer, fullFileLength);
+
+					printk("======== func:%s line:%d checksumResult:%d ========\n",__func__,__LINE__,checksumResult);//wangli_20140505
+					himax_lock_flash();
+
+					if (checksumResult) //Success
+					{
+						printk("======== func:%s SUCCESS line:%d ========\n",__func__,__LINE__);//wangli_20140505
+						return 1;
+					} 
+					else //Fail
+					{
+						printk("======== func:%s FAIL line:%d ========\n",__func__,__LINE__);//wangli_20140505
+						return 0;
+					} 
+				}
+			}
+		}
+	}
+	//return 0;
+}
+
+static unsigned char fw_upgrade_ioctl(unsigned char *i_buf,unsigned int i_length)
+{
+	int ret = 0;
+	printk("1.==== GO fw_upgrade_ioctl ====\n");
+	//tpd_resume();
+	if (i_Check_FW_Version() > 0 || himax_calculateChecksum(i_buf, i_length) == 0 )
+	{
+		mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
+		ret = fw_upgrade_ioctl_with_i_file(i_buf,i_length);
+
+		if(0 == ret)
+		{
+			printk("======== TP upgrade error ========\n");//wl
+		}
+		else
+		{
+			printk("======== TP upgrade OK ========\n");//wl
+		}	
+	}
+
+	return ret;
+
+}
+
+//wangli_20140618 end========================================================================================
+#endif
+
 static int i_update_func(void)
 {
 	unsigned char* ImageBuffer = i_CTPM_FW;
@@ -2723,7 +3056,16 @@ static int himax_ts_poweron(void)
 			goto send_i2c_msg_fail;
 		} 
 		udelay(100);
-
+		//normal mode wangli_20140613
+		buf0[0] = 0x91;
+		buf0[1] = 0x00;
+		ret = himax_i2c_write_data(i2c_client, buf0[0], 1, &buf0[1]);
+		if(ret < 0)
+		{
+			printk(KERN_ERR "i2c_master_send failed addr = 0x%x\n",i2c_client->addr);
+			goto send_i2c_msg_fail;			
+		}
+		//normal mode end
 		/*
 		buf0[0] = HX_CMD_TSSON;
 		ret = i2c_himax_master_write(ts_modify->client, buf0, 1, DEFAULT_RETRY_CNT);//sense on
@@ -6218,16 +6560,67 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 		printk("check_FC is 1 input_report_key on%c , gesture_flag= %c\n ",check_FC,gesture_flag );
 		printk("check_FC is   %d!\n", check_FC);
 #endif
-		if(check_FC == 1)
+		if(check_FC == 1 && GestureEnable == 1)
 		{
+			switch(gesture_flag)
+			{
+				case GESTURE_DOUBLE_TAP:
+					input_report_key(tpd->dev, KEY_POWER, 1);
+					input_sync(tpd->dev);
 
+					input_report_key(tpd->dev, KEY_POWER, 0);
+					input_sync(tpd->dev);
+
+					printk("======== 0xFC T-T ========\n");				
+					break;
+				case GESTURE_NONE:
+/*					input_report_key(tpd->dev, KEY_POWER, 1);
+					input_sync(tpd->dev);
+
+					input_report_key(tpd->dev, KEY_POWER, 0);
+					input_sync(tpd->dev);
+*/
+					printk("======== 0xFB ? ========\n");				
+					break;
+				case GESTURE_Q:
+					input_report_key(tpd->dev, KEY_POWER, 1);
+					input_sync(tpd->dev);
+
+					input_report_key(tpd->dev, KEY_POWER, 0);
+					input_sync(tpd->dev);
+
+					printk("======== 0xFA q ========\n");				
+					break;
+				case GESTURE_E:
+					input_report_key(tpd->dev, KEY_POWER, 1);
+					input_sync(tpd->dev);
+
+					input_report_key(tpd->dev, KEY_POWER, 0);
+					input_sync(tpd->dev);
+					printk("======== 0xF8 e ========\n");				
+					break;
+				case GESTURE_Z:
+					input_report_key(tpd->dev, KEY_POWER, 1);
+					input_sync(tpd->dev);
+
+					input_report_key(tpd->dev, KEY_POWER, 0);
+					input_sync(tpd->dev);
+					printk("======== 0xF8 z ========\n");				
+					break;
+				default:
+				
+					break;
+			}	
+/*
 			if ((gesture_flag==0xF8)&&(gesture_switch==1))
 			{
-				input_report_key(tpd->dev, KEY_F14, 1);
+				//input_report_key(tpd->dev, KEY_F14, 1);//WL
+				input_report_key(tpd->dev, KEY_POWER, 1);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 
-				input_report_key(tpd->dev, KEY_F14, 0);
+				//input_report_key(tpd->dev, KEY_F14, 0);//WL
+				input_report_key(tpd->dev, KEY_POWER, 0);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 				printk("check_FC is KEY_F14\n");
@@ -6235,49 +6628,57 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 			}
 			if ((gesture_flag==0xF9)&&(gesture_switch==1))
 			{
-				input_report_key(tpd->dev, KEY_F13, 1);
+				//input_report_key(tpd->dev, KEY_F13, 1);//WL
+				input_report_key(tpd->dev, KEY_POWER, 1);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 
-				input_report_key(tpd->dev, KEY_F13, 0);
+				//input_report_key(tpd->dev, KEY_F13, 0);//WL
+				input_report_key(tpd->dev, KEY_POWER, 0);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 				printk("check_FC is KEY_F13\n");
 			}
 			if ((gesture_flag==0xFA)&&(gesture_switch==1))
 			{
-				input_report_key(tpd->dev, KEY_F16, 1);
+				//input_report_key(tpd->dev, KEY_F16, 1);//WL
+				input_report_key(tpd->dev, KEY_POWER, 1);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 
-				input_report_key(tpd->dev, KEY_F16, 0);
+				//input_report_key(tpd->dev, KEY_F16, 0);//WL
+				input_report_key(tpd->dev, KEY_POWER, 0);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 				printk("check_FC is KEY_F15\n");
 			}
 			if ((gesture_flag==0xFB)&&(gesture_switch==1))
 			{
-				input_report_key(tpd->dev, KEY_F15, 1);
+				//input_report_key(tpd->dev, KEY_F15, 1);//WL
+				input_report_key(tpd->dev, KEY_POWER, 1);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->kpd);
 
-				input_report_key(tpd->dev, KEY_F15, 0);
+				//input_report_key(tpd->dev, KEY_F15, 0);//WL
+				input_report_key(tpd->dev, KEY_POWER, 0);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 				printk("check_FC is KEY_F16\n");
 			}
 			if ((gesture_flag==0xFC)&&(wake_switch== 1))
 			{
-				input_report_key(tpd->dev, KEY_F17, 1);
+				//input_report_key(tpd->dev, KEY_F17, 1);//WL
+				input_report_key(tpd->dev, KEY_POWER, 1);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 
-				input_report_key(tpd->dev, KEY_F17, 0);
+				//input_report_key(tpd->dev, KEY_F17, 0);//WL
+				input_report_key(tpd->dev, KEY_POWER, 0);
 				//  input_mt_sync(tpd->kpd);
 				input_sync(tpd->dev);
 				printk("check_FC is KEY_F17\n");
 			}
-
+*/
 #ifdef HX_PORTING_DEB_MSG
 			printk("check_FC is 1 input_report_key on \n " );
 			printk("Himax GPG key end");
@@ -6758,7 +7159,7 @@ static int touch_event_handler(void *unused)
 		set_current_state(TASK_RUNNING);
 		himax_charge_switch(0);
 		// mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
-		if (tpd_touchinfo(&cinfo, &pinfo))
+		if(tpd_touchinfo(&cinfo, &pinfo))
 		{
 			for(i = 0; i < HX_MAX_PT; i++)
 			{
@@ -6782,6 +7183,10 @@ static int touch_event_handler(void *unused)
 			last_hx_point_num=hx_point_num;
 			//last_point_key_flag=point_key_flag;//wangli_20140504      
 			input_sync(tpd->dev);
+		}
+		else
+		{
+			printk("======== IN GESTURE MODE========");
 		}
 	}
 	while(!kthread_should_stop());
@@ -6845,6 +7250,7 @@ static int __devinit tpd_probe(struct i2c_client *client, const struct i2c_devic
 	char data[5];
 	int fw_ret;
 	int k;
+	int err = 0;
 #ifdef TPD_PROXIMITY
 	struct hwmsen_object obj_ps;
 	int err;
@@ -6927,11 +7333,11 @@ static int __devinit tpd_probe(struct i2c_client *client, const struct i2c_devic
 
 #ifdef Himax_Gesture
 	input_set_capability(tpd->dev, EV_KEY, KEY_POWER);
-	input_set_capability(tpd->dev, EV_KEY, KEY_F13);
+/*	input_set_capability(tpd->dev, EV_KEY, KEY_F13);
 	input_set_capability(tpd->dev, EV_KEY, KEY_F14);
 	input_set_capability(tpd->dev, EV_KEY, KEY_F15);
 	input_set_capability(tpd->dev, EV_KEY, KEY_F16);
-	input_set_capability(tpd->dev, EV_KEY, KEY_F17);
+	input_set_capability(tpd->dev, EV_KEY, KEY_F17);*/
 #endif
 
 #ifdef MT6592
@@ -6997,7 +7403,14 @@ msleep(100);
 	running_status = 0;
 #endif
 
-
+//add register misc_device wangli_20140617
+#ifdef CONFIG_SUPPORT_CTP_UPG
+	if((err = misc_register(&tpd_misc_device)))
+	{
+		printk("==== mek_tpd:tpd_misc_device register failed! ====\n");
+	}
+#endif
+#if 1  //wangli_20140619
 #ifdef HX_FW_UPDATE_BY_I_FILE
 	if (isTP_Updated == 0)
 	{
@@ -7023,6 +7436,8 @@ msleep(100);
 		}
 		
 	}
+
+#endif
 
 #endif
 	himax_touch_information();
@@ -7061,6 +7476,11 @@ HimaxErr:
 	cancel_delayed_work(&himax_chip_monitor);
 #endif
 	TPD_DMESG("[Himax] Himax TP: I2C transfer error, line: %d\n", __LINE__);
+
+//set atomic 0,no interrupt 
+#ifdef CONFIG_SUPPORT_CTP_UPG
+	atomic_set(&upgrading,0);
+#endif	
 	return -1;
 }
 
@@ -7117,7 +7537,7 @@ static int tpd_resume(struct i2c_client *client)
 
 	himax_charge_switch(1);
 	#ifdef Himax_Gesture
-	if ((wake_switch== 1)||(gesture_switch==1))
+	if (GestureEnable==1)
 	{
 	
             printk("[Himax]%s enter,do nothing\n",__func__);
@@ -7127,6 +7547,9 @@ static int tpd_resume(struct i2c_client *client)
 	    printk("[Himax]%s enter , write 0x90:0x00 \n",__func__);
 	
 	    data[0] = 0x00;
+
+	    himax_i2c_write_data(i2c_client, 0x91, 1,&data[0]);//normal mode wangli_20140613
+
             himax_i2c_write_data(i2c_client, 0x90, 1, &data[0]);
 	    //////---------------- modify on 1209////////////////
 	    mdelay(10);
@@ -7136,7 +7559,7 @@ static int tpd_resume(struct i2c_client *client)
 	    mdelay(120);
 	    /////------------------modify on 1209///////////////
 	    HX_Gesture=0;
-        	tpd_halt = 0;
+	    tpd_halt = 0;
 	}
     else
 	#endif
@@ -7201,7 +7624,7 @@ static int tpd_suspend(struct i2c_client *client, pm_message_t message)
 	int i;
 	static char data[2];
 	#ifdef Himax_Gesture		
-	if ((wake_switch== 1)||(gesture_switch==1))
+	if (GestureEnable == 1)
 	{
 		tpd_halt = 1;
 		mdelay(50);
@@ -7271,13 +7694,38 @@ static ssize_t show_chipinfo(struct device *dev,struct device_attribute *attr,ch
 	ver_l = CFG_VER_MIN_buff[2] - '0';
 	printk("CFG_VER_MIN_buff[1] = %x,CFG_VER_MIN_buff[2] = %x\n",CFG_VER_MIN_buff[1],CFG_VER_MIN_buff[2]);
 
-	return sprintf(buf,"VER:0x%x%x IC:hx8527 VENDOR:truely\n",ver_h,ver_l);
+	return sprintf(buf,"ID:0x00 VER:0x%x%x IC:hx8527 VENDOR:truely\n",ver_h,ver_l);
 }
 
 static DEVICE_ATTR(chipinfo,0444,show_chipinfo,NULL);
+// add double tap sysfs interface
+#ifdef	Himax_Gesture
+static ssize_t show_control_double_tap(struct device *dev,struct device_attribute *attr,char *buf)
+{
+	struct i2c_client *client = i2c_client;
+	
+	return sprintf(buf,"gesture state:%s \n",GestureEnable==0 ? "Disable" : "Enable");
+}
+
+static ssize_t store_control_double_tap(struct device *dev,struct device_attribute *attr,const char *buf,size_t size)
+{
+	char *pvalue = NULL;
+	if(buf != NULL && size != 0)
+	{
+		printk("[hx8527]store_control_double_tap buf is %s and size is %d \n",buf,size);
+		GestureEnable = simple_strtoul(buf,&pvalue,16);
+		printk("[hx8527]store_control_double_tap : %s\n",GestureEnable==0 ? "Disable" : "Enable");
+	}
+}
+
+static DEVICE_ATTR(control_double_tap,0666,show_control_double_tap,store_control_double_tap);
+#endif 
 
 static const struct device_attribute * const ctp_attributes[] = {
-	&dev_attr_chipinfo
+	&dev_attr_chipinfo,
+#ifdef	Himax_Gesture
+	&dev_attr_control_double_tap
+#endif
 };
 
 //Himax: Touch Driver Structure
@@ -7291,7 +7739,11 @@ static struct tpd_driver_t tpd_device_driver =
 	.attrs=
 	{
 		.attr=ctp_attributes,
+		#ifdef	Himax_Gesture
+		.num=2
+		#else
 		.num=1
+		#endif
 	},
 	//end //wangli_20140522
 	#if defined(HX_EN_SEL_BUTTON) || defined(HX_EN_MUT_BUTTON) 

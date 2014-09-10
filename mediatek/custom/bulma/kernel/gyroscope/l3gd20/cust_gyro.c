@@ -16,9 +16,10 @@ int cust_gyro_power(struct gyro_hw *hw, unsigned int on, char* devname)
 */
 /*---------------------------------------------------------------------------*/
 static struct gyro_hw cust_gyro_hw = {
-    .i2c_num = 0,
-    .direction = 0,
-    .power_id = MT65XX_POWER_NONE,  /*!< LDO is not used */
+    .i2c_num = 1,
+    .direction = 7,//wangli_20140618
+//    .power_id = MT65XX_POWER_NONE,  /*!< LDO is not used */
+    .power_id = MT6322_POWER_LDO_VCAM_IO,  /*!< LDO is used */
     .power_vol= VOL_DEFAULT,        /*!< LDO is not used */
     .firlen = 16,                   /*!< don't enable low pass fileter */
    // .power = cust_gyro_power,

@@ -66,7 +66,7 @@
 #define CON1_BOOST_LIM_SHIFT  0
 
 //CON2
-#define CON2_ICHG_MASK    0x1F
+#define CON2_ICHG_MASK    0x3F
 #define CON2_ICHG_SHIFT   2
 
 //CON3

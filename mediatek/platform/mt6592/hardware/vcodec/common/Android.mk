@@ -41,6 +41,7 @@ LOCAL_PREBUILT_LIBS := \
 	lib/libvcodec_oal.so \
 	lib/libmp4enc_sa.ca7.so \
 	lib/libvp8dec_sa.ca7.so \
+	lib/libvp9dec_sa.ca7.so \
 	lib/libvc1dec_sa.ca7.so
 
 ifeq ($(strip $(MTK_VIDEO_HEVC_SUPPORT)), yes)

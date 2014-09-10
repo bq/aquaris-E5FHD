@@ -25,8 +25,11 @@
  *  Type define
  ****************************************************************************/
 #define BATTERY_LOWVOL_THRESOLD             3450
+#ifdef USE_FOR_BULMA_HE
+#define BATTERY_TEMP_THRESOLD               45
+#else
 #define BATTERY_TEMP_THRESOLD               50
-
+#endif
 
 
 #define RBAT_PULL_UP_R             16900	
@@ -301,7 +304,7 @@ dprintf(INFO, "[mt65xx_bat_init] samwwwwwwwwwwwwwwwwwwwwwwwwwww\n");
 #endif
 #ifdef MTK_BQ24296_SUPPORT
 	bq24296_hw_init();
-	bq24296_charging_enable(0);  //disable charging with power path
+	bq24296_charging_enable(1);  //disable charging with power path
 	bq24296_dump_register();
 #endif
 }

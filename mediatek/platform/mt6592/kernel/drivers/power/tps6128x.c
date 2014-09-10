@@ -234,7 +234,19 @@ void tps6128x_hw_component_detect(void)
 }
 
 void tps6128x_hw_init(void)
-{       
+{  
+     kal_uint32 ret=0;
+     kal_uint8 chip_version=0;
+	
+     ret=tps6128x_read_interface(0x0,&chip_version,0xFF, 0);
+	
+     if(chip_version==0x02)  //tps61280 0x02; tps61280a 0x03
+     {	 
+	battery_xlog_printk(BAT_LOG_CRTI,"[tps6128x_hw_init] sw workaround for tps61280 no-A chip,wait for 10ms\n");
+	ret=tps6128x_config_interface(0x3, 0x1F, 0x1F, 0); // Output voltage threshold = 4.4v
+	msleep(10);//wait for more than 5ms
+     }
+     
     battery_xlog_printk(BAT_LOG_CRTI,"[tps6128x_hw_init] From Johnson\n");
     tps6128x_config_interface(0x3, 0xA, 0x1F, 0); // Output voltage threshold 0xA = 3.35V; 0xB=3.4V
     tps6128x_config_interface(0x4, 0xF, 0xF,  0); // OC_input=max    

@@ -1089,30 +1089,6 @@ static long MTK_M4U_ioctl(struct file * a_pstFile,
             m4u_dma_cache_flush_all();
         break;
 
-        case MTK_M4U_T_REG_GET:
-        {
-            unsigned int para[2];
-            M4U_ASSERT(a_Param);
-            ret = copy_from_user(para, (void*)a_Param , 2*sizeof(unsigned int));
-            
-            para[1] = COM_ReadReg32(para[0]);
-
-            ret=copy_to_user((void*)a_Param, para, 2*sizeof(unsigned int));
-        }
-        break;
-
-
-        case MTK_M4U_T_REG_SET:
-        {
-            unsigned int para[2];
-            M4U_ASSERT(a_Param);
-            ret = copy_from_user(para, (void*)a_Param , 2*sizeof(unsigned int));
-            
-            COM_WriteReg32(para[0], para[1]);
-        }
-
-        break;
-
         default :
             M4UMSG("MTK M4U ioctl : No such command!!\n");
             ret = -EINVAL;
@@ -2586,6 +2562,9 @@ int __m4u_alloc_mva(mva_info_t *pMvaInfo, struct sg_table *sg_table)
     unsigned int entry_flag = F_DESC_VALID | F_DESC_NONSEC(!security) | F_DESC_SHARE(!!cache_coherent);
     int prefetch_distance = 1;
 
+    unsigned int m4u_index = m4u_module_2_m4u_id(eModuleID);
+    unsigned int m4u_base = gM4UBaseAddr[m4u_index];
+
     MMProfileLogEx(M4U_MMP_Events[PROFILE_ALLOC_MVA], MMProfileFlagStart, eModuleID, BufAddr);
     MMProfileLogEx(M4U_MMP_Events[PROFILE_ALLOC_MVA], MMProfileFlagPulse, current->tgid, 0);
 
@@ -2671,8 +2650,10 @@ int __m4u_alloc_mva(mva_info_t *pMvaInfo, struct sg_table *sg_table)
     pMvaInfo->mvaStart = mvaStart;
 
     MMProfileLogEx(M4U_MMP_Events[PROFILE_ALLOC_MVA], MMProfileFlagEnd, mvaStart, BufSize);
-    M4UINFO("alloc_mva_dynamic: id=%s, addr=0x%08x, size=%d,sec=%d, mva=0x%x, mva_end=0x%x\n",
-                    m4u_get_module_name(eModuleID), BufAddr,  BufSize, security, pMvaInfo->mvaStart, pMvaInfo->mvaStart+BufSize-1);
+    M4UINFO("alloc_mva_dynamic: id=%s, addr=0x%08x, size=%d,sec=%d, mva=0x%x, mva_end=0x%x, 0x5c0 = 0x%x, 0x5c4 = 0x%x, 0x5c8 = 0x%x, 0x5cc = 0x%x, 0x5d0 = 0x%x.\n",
+                    m4u_get_module_name(eModuleID), BufAddr,  BufSize, security, pMvaInfo->mvaStart, pMvaInfo->mvaStart+BufSize-1, 
+                    M4U_ReadReg32(m4u_base, 0x5C0), M4U_ReadReg32(m4u_base, 0x5C4), 
+                    M4U_ReadReg32(m4u_base, 0x5C8),M4U_ReadReg32(m4u_base, 0x5CC),M4U_ReadReg32(m4u_base, 0x5D0));
 
     return 0;
 
@@ -2695,10 +2676,12 @@ int __m4u_dealloc_mva(M4U_MODULE_ID_ENUM eModuleID,
 {									
 
     int ret;
-    
-    M4UINFO("m4u_dealloc_mva, module=%s, addr=0x%x, size=0x%x, MVA=0x%x, mva_end=0x%x\n",
-        m4u_get_module_name(eModuleID), BufAddr, BufSize, MVA, MVA+BufSize-1 );
-
+    unsigned int m4u_index = m4u_module_2_m4u_id(eModuleID);
+    unsigned int m4u_base = gM4UBaseAddr[m4u_index];
+    M4UINFO("m4u_dealloc_mva, module=%s, addr=0x%x, size=0x%x, MVA=0x%x, mva_end=0x%x, 0x5c0 = 0x%x, 0x5c4 = 0x%x, 0x5c8 = 0x%x, 0x5cc = 0x%x, 0x5d0 = 0x%x.\n",
+                    m4u_get_module_name(eModuleID), BufAddr, BufSize, MVA, MVA+BufSize-1, 
+                    M4U_ReadReg32(m4u_base, 0x5C0), M4U_ReadReg32(m4u_base, 0x5C4), 
+                    M4U_ReadReg32(m4u_base, 0x5C8),M4U_ReadReg32(m4u_base, 0x5CC),M4U_ReadReg32(m4u_base, 0x5D0));
 
     MMProfileLogEx(M4U_MMP_Events[PROFILE_DEALLOC_MVA], MMProfileFlagStart, eModuleID, BufAddr);
     MMProfileLogEx(M4U_MMP_Events[PROFILE_DEALLOC_MVA], MMProfileFlagPulse, current->tgid, 0);
@@ -3013,6 +2996,38 @@ int m4u_invalid_seq_range_by_mva(int m4u_index, unsigned int MVAStart, unsigned 
 }
 
 
+//only check MEP_ROTVO, MDP_ROTCO, MDP_ROTO
+//return 0: va, 1:pa
+int m4u_do_check_port_va_or_pa(M4U_PORT_STRUCT* pM4uPort) {
+    int ret = 0;
+    M4U_PORT_ID_ENUM PortID = (pM4uPort->ePortID);
+    unsigned int m4u_base = gM4UBaseAddr[m4u_port_2_m4u_id(PortID)];
+    unsigned int regVal;
+
+    if (PortID == MDP_ROTVO) {
+    	regVal = M4U_ReadReg32(m4u_base, 0x5C4);
+    	if (regVal & 0x80 == 0x0) {
+    		M4UMSG("m4u_check_port_va_or_pa port = %s, 0x5C4 = 0x%x", m4u_get_port_name(PortID), regVal);
+    		ret = 1;
+    	}
+    }
+    if (PortID == MDP_ROTCO) {
+    	regVal = M4U_ReadReg32(m4u_base, 0x5C4);
+    	if (regVal & 0x8 == 0x0) {
+    		M4UMSG("m4u_check_port_va_or_pa port = %s, 0x5C4 = 0x%x", m4u_get_port_name(PortID), regVal);
+    		ret = 1;
+    	}
+    }
+    if (PortID == MDP_ROTO) {
+    	regVal = M4U_ReadReg32(m4u_base, 0x5C0);
+    	if (regVal & 0x80000000 == 0x0) {
+    		M4UMSG("m4u_check_port_va_or_pa port = %s, 0x5C0 = 0x%x", m4u_get_port_name(PortID), regVal);
+    		ret = 1;
+    	}
+    }
+    return ret;
+}
+
 int m4u_do_config_port(M4U_PORT_STRUCT* pM4uPort) //native
 {
 
@@ -3024,12 +3039,17 @@ int m4u_do_config_port(M4U_PORT_STRUCT* pM4uPort) //native
     pM4uPort->Distance = 1;
     pM4uPort->Direction = 0;
 
-    if (MDP_ROTVO == PortID && 0 == pM4uPort->Virtuality) {
-        m4u_aee_print("m4u_config_port(), port=%s, Virtuality=%d, Security=%d, Distance=%d, Direction=%d \n",
-           m4u_get_port_name(pM4uPort->ePortID), pM4uPort->Virtuality, pM4uPort->Security, pM4uPort->Distance, pM4uPort->Direction);
-        M4UMSG("m4u_config_port(), port=%s, Virtuality=%d, Security=%d, Distance=%d, Direction=%d \n",
-           m4u_get_port_name(pM4uPort->ePortID), pM4uPort->Virtuality, pM4uPort->Security, pM4uPort->Distance, pM4uPort->Direction);
-        return -EINVAL;
+
+    M4UINFO("m4u_config_port(), port=%s, Virtuality=%d, Security=%d, 0x5c0 = 0x%x, 0x5c4 = 0x%x, 0x5c8 = 0x%x, 0x5cc = 0x%x, 0x5d0 = 0x%x.\n",
+       m4u_get_port_name(pM4uPort->ePortID), pM4uPort->Virtuality, pM4uPort->Security,
+           M4U_ReadReg32(m4u_base, 0x5C0), M4U_ReadReg32(m4u_base, 0x5C4), 
+           M4U_ReadReg32(m4u_base, 0x5C8),M4U_ReadReg32(m4u_base, 0x5CC),M4U_ReadReg32(m4u_base, 0x5D0));
+
+    if ((PortID == MDP_ROTO || PortID == MDP_ROTCO || PortID == MDP_ROTVO) && pM4uPort->Virtuality == 0) {
+        m4u_aee_print("m4u_config_port(), port=%s, Virtuality=%d, Security=%d, 0x5c0 = 0x%x, 0x5c4 = 0x%x, 0x5c8 = 0x%x, 0x5cc = 0x%x, 0x5d0 = 0x%x \n",
+                       m4u_get_port_name(pM4uPort->ePortID), pM4uPort->Virtuality, pM4uPort->Security,
+                       M4U_ReadReg32(m4u_base, 0x5C0), M4U_ReadReg32(m4u_base, 0x5C4), 
+                       M4U_ReadReg32(m4u_base, 0x5C8),M4U_ReadReg32(m4u_base, 0x5CC),M4U_ReadReg32(m4u_base, 0x5D0));
     }
 
     MMProfileLogEx(M4U_MMP_Events[PROFILE_CONFIG_PORT], MMProfileFlagStart, eModuleID, pM4uPort->ePortID);

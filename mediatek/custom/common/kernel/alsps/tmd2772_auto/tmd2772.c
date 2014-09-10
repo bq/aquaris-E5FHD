@@ -1235,7 +1235,7 @@ static int TMD2772_get_als_value(struct TMD2772_priv *obj, u16 als)
 		return value;
 	//	#endif
         //APS_DBG("ALS: %05d => %05d\n", als, obj->hw->als_value[idx]);
-        return 2*obj->hw->als_value[idx];
+        //return 2*obj->hw->als_value[idx];
 
 	}
 	else
@@ -2724,7 +2724,7 @@ static void tmd2772_ps_calibrate(struct i2c_client *client)
 	else if((800 <= prox_mean)&&(prox_mean <= 1023))
 	{
 		buffer[0] = TMD2772_CMM_OFFSET;
-		offset_data = buffer[1] = 0x00 | 0x7f;  // 0x80  not change.       | 0x30  can change
+		offset_data = buffer[1] = 0x00 | 0x56;  // 0x80  not change.       | 0x30  can change
 		err= i2c_master_send(client, buffer, 0x2);
 		if(err<= 0)
 		{

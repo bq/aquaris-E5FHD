@@ -135,6 +135,11 @@ void mt6333_init (void)
     printf("[mt6333_init] Reg[%x]=0x%x\n", MT6333_CID1, mt6333_get_reg_value(MT6333_CID1));
     printf("[mt6333_init] Reg[%x]=0x%x\n", 0x2C, mt6333_get_reg_value(0x2C)); //E3:0x10
 
+    ret = mt6333_config_interface(0xA0, 0, 0x1, 0x2);  // [2:2]: RG_VCORE_VOSEL_SPM_SET; set VCORE to hw ctrl
+    ret = mt6333_config_interface(0x9F, 0, 0x3, 0x0);  // [0:1]: VRF18_EN, RG_VRF18_MODESET; Disable VRF18 and set to auto mode
+    ret = mt6333_config_interface(0x16, 0, 0x1, 0x0);  // [0:0]: Disable boost
+    ret = mt6333_config_interface(0x31, 0, 0x1, 0x0);  // [0:0]: RG_FLASH_EN; Disable flashlight driver
+
     #ifdef DUMMY_AP
     ret = mt6333_config_interface(0x9F, 0x6A, 0xFF, 0);
     printf("[mt6333_init for DUMMY_AP] Reg[%x]=0x%x\n", 0x9F, mt6333_get_reg_value(0x9F));

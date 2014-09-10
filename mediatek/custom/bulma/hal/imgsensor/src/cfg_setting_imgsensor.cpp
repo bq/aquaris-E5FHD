@@ -45,7 +45,7 @@ SensorOrientation_T const&
 getSensorOrientation()
 {
     static SensorOrientation_T const inst = {
-        u4Degree_0  : 270,   //  main sensor in degree (0, 90, 180, 270)//google & MTK feature only support 90 degree
+        u4Degree_0  : 90,   //  main sensor in degree (0, 90, 180, 270)//google & MTK feature only support 90 degree
         u4Degree_1  : 270, //0   //  sub  sensor in degree (0, 90, 180, 270) revise for lenovo stella+
         u4Degree_2  : 90,   //  main2 sensor in degree (0, 90, 180, 270) 
     };

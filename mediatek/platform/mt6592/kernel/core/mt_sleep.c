@@ -210,7 +210,13 @@ static void leave_pasrdpd(void)
 
 	/* Disable PASR */
 	mrw_error = configure_mrw_pasr(0x0, 0x0);
+}
 
+void arch_suspend_enable_irqs(void)
+{
+	/* Enable IRQ */
+	local_irq_enable();
+	
 	/* End PASR/DPD SW operations */
 	pasr_exit();
 }

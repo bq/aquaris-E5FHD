@@ -542,6 +542,16 @@ MRESULT AeMgr::setFDInfo(MVOID* a_sFaces)
 {
     MtkCameraFaceMetadata *pFaces = (MtkCameraFaceMetadata *)a_sFaces;
 
+    if(pFaces == NULL) {
+        MY_LOG("[%s()] FD window is NULL pointer 1\n", __FUNCTION__);
+        return S_AF_OK;        
+    }
+    
+    if((pFaces->faces) == NULL) {
+        MY_LOG("[%s()] FD window is NULL pointer 2\n", __FUNCTION__);
+        return S_AF_OK;        
+    }
+    
     if((m_eAEFDArea.i4Left != pFaces->faces->rect[0]) || (m_eAEFDArea.i4Right != pFaces->faces->rect[2]) || (m_eAEFDArea.i4Top != pFaces->faces->rect[1]) ||
                   (m_eAEFDArea.i4Bottom != pFaces->faces->rect[3]) || (m_eAEFDArea.i4Weight != pFaces->number_of_faces)) {
         m_eAEFDArea.i4Left = pFaces->faces->rect[0];
@@ -1174,7 +1184,7 @@ MUINT32 u4DFpsThres = 0;
     m_i4TimeOutCnt = MFALSE;  // reset timeout counter
     m_bFrameUpdate = MTRUE;
 
-    m_pIsAEActive = getAEActiveCycle(bVideoMode, (m_i4AEMinFps >= AE_HIGH_FPS_THRES)? 1: 0);
+    m_pIsAEActive = getAEActiveCycle(bVideoMode, (m_i4AEMinFps >= AE_HIGH_FPS_THRES)? 1: 0, m_i4IspGainDelayFrames+1);
 
     if(m_pIAeAlgo != NULL) {
         AaaTimer localTimer("setAESatisticBufferAddr", m_i4SensorDev, (Hal3A::sm_3ALogEnable & EN_3A_TIMER_LOG));
@@ -1312,7 +1322,7 @@ AE_INFO_T rAEInfo2ISP;
         m_i4TimeOutCnt++;
     }
 
-    m_pIsAEActive = getAEActiveCycle((m_eAECamMode == LIB3A_AECAM_MODE_VIDEO)? 1:0, ((m_i4AEMinFps >= AE_HIGH_FPS_THRES)? 1: 0));
+    m_pIsAEActive = getAEActiveCycle((m_eAECamMode == LIB3A_AECAM_MODE_VIDEO)? 1:0, ((m_i4AEMinFps >= AE_HIGH_FPS_THRES)? 1: 0), m_i4IspGainDelayFrames+1);
 
     if(m_bEnableAE) {
         if(m_pIAeAlgo != NULL) {
@@ -1915,6 +1925,8 @@ MRESULT AeMgr::getNvramData(MINT32 i4SensorDev)
          MY_ERR("Nvram AE Pline table pointer NULL\n");
     }
 
+
+    NvramDrvMgr::getInstance().uninit();
     return S_AE_OK;
 }
 
@@ -1990,7 +2002,7 @@ MRESULT AeMgr::AEInit(Param_T &rParam)
     m_pIAeAlgo->lockAE(m_bAELock);
     m_pIAeAlgo->setAERealISOSpeed(m_bRealISOSpeed);
     m_pIAeAlgo->setAEVideoDynamicEnable(MFALSE);
-    m_pIAeAlgo->setAELowLightTargetValue(g_rAEInitInput.rAENVRAM.rCCTConfig.u4AETarget, 50);   // set AE lowlight target 47 and low light threshold LV5
+    m_pIAeAlgo->setAELowLightTargetValue(g_rAEInitInput.rAENVRAM.rCCTConfig.u4AETarget, g_rAEInitInput.rAENVRAM.rCCTConfig.u4InDoorEV - 50, g_rAEInitInput.rAENVRAM.rCCTConfig.u4InDoorEV);   // set AE lowlight target 47 and low light threshold LV5
     m_bVideoDynamic = MFALSE;
     m_pIAeAlgo->initAE(&g_rAEInitInput, &rAEOutput, &g_rAEStatCfg);
     copyAEInfo2mgr(&g_rAEOutput.rPreviewMode, &rAEOutput);
@@ -2229,7 +2241,7 @@ MRESULT AeMgr::updateCaptureParams(AE_MODE_CFG_T &a_rCaptureInfo)
     mCaptureMode = a_rCaptureInfo;
     u4FinalGain = (mCaptureMode.u4AfeGain*mCaptureMode.u4IspGain)>>10;
     mCaptureMode.u4RealISO = u4PreviewBaseISO*u4FinalGain/u4PreviewBaseGain;
-    g_rAEOutput.rCaptureMode[0] = mCaptureMode;  //flash not effect ISO
+    g_rAEOutput.rCaptureMode[0] = mCaptureMode;
     MY_LOG("[updateCaptureParams] Exp. mode = %d Capture Shutter:%d Sensor gain:%d Isp gain:%d frame rate:%d flare:%d %d ISO:%d\n",
         mCaptureMode.u4ExposureMode, mCaptureMode.u4Eposuretime,
         mCaptureMode.u4AfeGain, mCaptureMode.u4IspGain, mCaptureMode.u2FrameRate, mCaptureMode.i2FlareGain, mCaptureMode.i2FlareOffset, mCaptureMode.u4RealISO);

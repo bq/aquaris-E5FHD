@@ -60,7 +60,8 @@
 #endif
 
 /* This is an experimental value based on ARMv7 single core with 1.3 GHz! (Let the external decompression time be around 0.25s.) */
-#define MTKPASR_MAX_EXTCOMP	0x1FFF
+//#define MTKPASR_MAX_EXTCOMP	0x1FFF
+#define MTKPASR_MAX_EXTCOMP	0x1
 
 #define MTKPASR_FLUSH() do {				\
 				lru_add_drain_all();	\

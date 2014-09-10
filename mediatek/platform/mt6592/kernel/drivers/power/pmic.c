@@ -161,7 +161,7 @@ void upmu_set_reg_value(kal_uint32 reg, kal_uint32 reg_val)
     ret=pmic_config_interface(reg, reg_val, 0xFFFF, 0x0);    
 }
 
-kal_int32 count_time_out=100;
+kal_int32 count_time_out=10000;
 struct wake_lock pmicAuxadc_irq_lock;
 
 struct wake_lock pmicThread_lock;
@@ -232,10 +232,6 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 
     wake_lock(&pmicAuxadc_irq_lock);
 	
-
-	do
-	{
-
     mutex_lock(&pmic_adc_mutex);
 	
     PMIC_IMM_PollingAuxadcChannel();
@@ -269,10 +265,11 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 
 
 	mutex_unlock(&pmic_adc_mutex);
-
+	do
+	{
 	    //Duo to HW limitation
 	    if(dwChannel!=8)
-	    msleep(1);
+	        udelay(300);
 
 	    count=0;
 	    ret_data=0;
@@ -281,7 +278,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 0:    
 	            while( upmu_get_rg_adc_rdy_baton2() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -294,7 +291,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 1:    
 	            while( upmu_get_rg_adc_rdy_ch6() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -307,7 +304,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 2:    
 	            while( upmu_get_rg_adc_rdy_thr_sense2() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -319,7 +316,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 3:    
 	            while( upmu_get_rg_adc_rdy_thr_sense1() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -328,10 +325,10 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	            }
 	            ret_data = upmu_get_rg_adc_out_thr_sense1();				
 	            break;
-	        case 4:    
+	        case 4:  
 	            while( upmu_get_rg_adc_rdy_vcdt() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -343,7 +340,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 5:    
 	            while( upmu_get_rg_adc_rdy_baton1() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -355,7 +352,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 6:    
 	            while( upmu_get_rg_adc_rdy_isense() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -367,7 +364,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 	        case 7:    
 	            while( upmu_get_rg_adc_rdy_batsns() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);
@@ -391,7 +388,7 @@ int PMIC_IMM_GetOneChannelValue(int dwChannel, int deCount, int trimd)
 		case 16:	 	
 	            while( upmu_get_rg_adc_rdy_int() != 1 )
 	            {
-			msleep(1);
+			//msleep(1);
 			if( (count++) > count_time_out)
 			{
                         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[IMM_GetOneChannelValue_PMIC] (%d) Time out!\n", dwChannel);

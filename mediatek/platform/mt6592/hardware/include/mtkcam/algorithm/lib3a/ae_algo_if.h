@@ -318,7 +318,7 @@ public:
      * @brief set AE low light target for preview
      * @param [in] AE low light target
      */
-    virtual MRESULT setAELowLightTargetValue(MUINT32 u4AETargetValue, MINT32 i4LVThres) = 0;
+    virtual MRESULT setAELowLightTargetValue(MUINT32 u4AETargetValue, MINT32 i4LVThresEnd, MINT32 i4LVThresStart) = 0;
 };
 
 }; // namespace NS3A

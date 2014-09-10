@@ -1292,7 +1292,9 @@ status_t AudioResourceManager::StartInputDevice()
             mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_ADC2, AudioAnalogType::MUX_IN_PREAMP_R);
 
 #if defined(MTK_DUAL_MIC_SUPPORT)  // base on dual or single mic select mic input source.
-            
+#ifdef USE_FOR_BULMA_HE
+	    mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_PREAMP_L, AudioAnalogType::MUX_IN_MIC1); 
+#else           
             if(mAudioMode == AUDIO_MODE_IN_COMMUNICATION)
 	    {
 		mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_PREAMP_L, AudioAnalogType::MUX_IN_MIC3);
@@ -1301,7 +1303,9 @@ status_t AudioResourceManager::StartInputDevice()
 	   {
 		mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_PREAMP_L, AudioAnalogType::MUX_IN_MIC1);
  	   }
+#endif
             mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_PREAMP_R, AudioAnalogType::MUX_IN_MIC3);
+
 #else
             mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_PREAMP_L, AudioAnalogType::MUX_IN_MIC1);
             mAudioAnalogInstance->AnalogSetMux(AudioAnalogType::DEVICE_IN_PREAMP_R, AudioAnalogType::MUX_IN_MIC1);

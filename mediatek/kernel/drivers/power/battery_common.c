@@ -2068,9 +2068,11 @@ static void mt_battery_notify_VBatTemp_check(void)
 {
 #if defined(BATTERY_NOTIFY_CASE_0002_VBATTEMP)
 	#ifdef TEMPERATURE_CONTROL_CHARGING
-	if(BMT_status.temperature >= MAX_CHARGE_NOTIFY_TEMPERATURE)
+		if(BMT_status.temperature >= MAX_CHARGE_NOTIFY_TEMPERATURE)
+	#elif defined USE_FOR_BULMA_HE
+	 	if(BMT_status.temperature >= MAX_CHARGE_NOTIFY_TEMPERATURE)
 	#else
-	if(BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
+		if(BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
 	#endif
     {
         g_BatteryNotifyCode |= 0x0002;
@@ -2090,6 +2092,12 @@ static void mt_battery_notify_VBatTemp_check(void)
         g_BatteryNotifyCode |= 0x0020;
         battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] bat_temp(%d) out of range(too low)\n", BMT_status.temperature);
     }
+    #elif defined USE_FOR_BULMA_HE
+        else if (BMT_status.temperature < MIN_CHARGE_NOTIFY_TEMPERATURE)
+    {
+        g_BatteryNotifyCode |= 0x0020;
+        battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] bat_temp(%d) out of range(too low)\n", BMT_status.temperature);
+    }	 
     #else
 	else if (BMT_status.temperature < MIN_CHARGE_TEMPERATURE)
     {
@@ -2184,19 +2192,23 @@ void mt_battery_notify_check(void)
 
 static void mt_battery_thermal_check(void)
 {
+	kal_bool set_status = KAL_TRUE;
+
 	if( (g_battery_thermal_throttling_flag==1) || (g_battery_thermal_throttling_flag==3) )
     {
         if(battery_cmd_thermal_test_mode == 1){
             BMT_status.temperature = battery_cmd_thermal_test_mode_value;
             battery_xlog_printk(BAT_LOG_FULL, "[Battery] In thermal_test_mode , Tbat=%d\n", BMT_status.temperature);
         }
-    
+
 #if defined(MTK_JEITA_STANDARD_SUPPORT)
         //ignore default rule
 #else    
         #ifdef TEMPERATURE_CONTROL_CHARGING
 		if(BMT_status.temperature >= MAX_CHARGE_POWEROFF_TEMPERATURE)
-        #else
+       #elif defined USE_FOR_BULMA_HE
+		if(BMT_status.temperature >= MAX_CHARGE_POWEROFF_TEMPERATURE)
+	#else
 		if(BMT_status.temperature >= 60)
         #endif
         {
@@ -2214,7 +2226,6 @@ static void mt_battery_thermal_check(void)
                     struct power_supply *bat_psy = &bat_data->psy;
 
                     battery_xlog_printk(BAT_LOG_CRTI, "[Battery] Tbat(%d)>=60, system need power down.\n", BMT_status.temperature);
-
                     bat_data->BAT_CAPACITY = 0;
 
                     power_supply_changed(bat_psy); 
@@ -2222,10 +2233,10 @@ static void mt_battery_thermal_check(void)
                     if( BMT_status.charger_exist == KAL_TRUE )
                     {
                         // can not power down due to charger exist, so need reset system
-                        battery_charging_control(CHARGING_CMD_SET_PLATFORM_RESET,NULL);
+			 battery_charging_control(CHARGING_CMD_SET_PLATFORM_RESET,&set_status);
                     }
                     //avoid SW no feedback
-                    battery_charging_control(CHARGING_CMD_SET_POWER_OFF,NULL);
+		battery_charging_control(CHARGING_CMD_SET_POWER_OFF,&set_status);
                     //mt_power_off();
                 }
             }

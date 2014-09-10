@@ -53,7 +53,7 @@
 #ifndef _AE_TUNING_CUSTOM_H
 #define _AE_TUNING_CUSTOM_H
 
-#define AE_CYCLE_NUM (6)
+#define AE_CYCLE_NUM (12)
 #define AE_HIGH_FPS_THRES (300)
 
 #define BIT(pos) (1 << (pos))
@@ -74,7 +74,7 @@ MBOOL isAEEnabled();
 MBOOL isAEinPreAFStatue();
 AE_PARAM_T const& getAEParam();
 
-const MINT32* getAEActiveCycle(MBOOL bVideoMode, MBOOL bHighFps);
+const MINT32* getAEActiveCycle(MBOOL bVideoMode, MBOOL bHighFps, MINT32 i4SensorDelayFrame = 2);
 MINT32 getAECycleNum();
 MINT32 getAEHighFPSThreshold();
 

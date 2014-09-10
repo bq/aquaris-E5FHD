@@ -1461,6 +1461,10 @@ status_t AudioMTKVolumeController::ApplyMicGain(uint32_t MicType, int mode)
 
     ALOGD("ApplyMicGain MicType = %d DegradedBGain = %d SwAgcGain = %d, mULTotalGain = %d",
           MicType, DegradedBGain, mSwAgcGain, mULTotalGain);
+#ifdef USE_FOR_BULMA_HE
+    mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_MICAMPL, DegradedBGain);
+    mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_MICAMPR, DegradedBGain);
+#else
     if(mode == AUDIO_MODE_IN_COMMUNICATION)   //translate from XS by lifeng
     {
 		mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_MICAMPL, DegradedBGain);
@@ -1471,7 +1475,7 @@ status_t AudioMTKVolumeController::ApplyMicGain(uint32_t MicType, int mode)
 	    mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_MICAMPL, DegradedBGain);
 	    mAudioAnalogControl->SetAnalogGain(AudioAnalogType::VOLUME_MICAMPR, DegradedBGain);
     }
-
+#endif
     // fix me: here need t send reminder DB to HD record or modem side
     if (mode == AUDIO_MODE_IN_CALL ||
         mode == AUDIO_MODE_IN_CALL_2 ||

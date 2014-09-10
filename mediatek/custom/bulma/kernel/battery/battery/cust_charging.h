@@ -14,6 +14,12 @@
 #define MIN_CHARGE_TEMPERATURE_PLUS_X_DEGREE	6
 #define ERR_CHARGE_TEMPERATURE  0xFF
 
+#ifdef USE_FOR_BULMA_HE
+#define MAX_CHARGE_NOTIFY_TEMPERATURE 55				//高温报警温度
+#define MIN_CHARGE_NOTIFY_TEMPERATURE -20				//低温报警温度
+#define MAX_CHARGE_POWEROFF_TEMPERATURE 60	//高温自动掉电温度
+#endif
+
 /* Linear Charging Threshold */
 #define V_PRE2CC_THRES	 		3400	//mV
 #define V_CC2TOPOFF_THRES		4050
@@ -42,7 +48,7 @@
 /* charger error check */
 //#define BAT_LOW_TEMP_PROTECT_ENABLE         // stop charging if temp < MIN_CHARGE_TEMPERATURE
 #define V_CHARGER_ENABLE 0				// 1:ON , 0:OFF	
-#define V_CHARGER_MAX 6500				// 6.5 V
+#define V_CHARGER_MAX 6000				// 6.0 V
 #define V_CHARGER_MIN 4400				// 4.4 V
 
 /* Tracking TIME */

@@ -56,6 +56,10 @@
 int gpio_number   = GPIO_SWCHARGER_EN_PIN; 
 int gpio_off_mode = GPIO_SWCHARGER_EN_PIN_M_GPIO;
 int gpio_on_mode  = GPIO_SWCHARGER_EN_PIN_M_GPIO;
+
+int gpio_psel_number   = GPIO_CHR_PSEL_PIN; 
+int gpio_psel_adapter_mode = GPIO_CHR_PSEL_PIN_M_GPIO;
+int gpio_psel_usb_mode  = GPIO_CHR_PSEL_PIN_M_GPIO;
 #else
 int gpio_number   = (19 | 0x80000000); 
 int gpio_off_mode = 0;
@@ -66,7 +70,15 @@ int gpio_off_out  = GPIO_OUT_ONE;
 int gpio_on_dir   = GPIO_DIR_OUT;
 int gpio_on_out   = GPIO_OUT_ZERO;
 
+int gpio_psel_adapter_dir  = GPIO_DIR_OUT;
+int gpio_psel_usb_dir   = GPIO_DIR_OUT;
+int gpio_psel_adapter_out  = GPIO_OUT_ZERO;
+int gpio_psel_usb_out   = GPIO_OUT_ONE;
+
+
 kal_bool charging_type_det_done = KAL_TRUE;
+
+CHARGER_TYPE bq24296_charging_type =STANDARD_HOST;
 
 const kal_uint32 VBAT_CV_VTH[]=
 {
@@ -552,43 +564,47 @@ static void hw_bc11_dump_register(void)
 	if(KAL_TRUE == enable)
 	{
 		
-	 bq24296_set_en_hiz(0x00);
+	 	bq24296_set_en_hiz(0x00);
 
-        bq24296_set_chg_config(0x01);   //charging enable
+        	bq24296_set_chg_config(0x01);   //charging enable
 
-		    printk("[bq24296]  charging_enable111111111111111111 ");
+		printk("[bq24296]  charging_enable111111111111111111 ");
+
+		if(STANDARD_CHARGER == bq24296_charging_type)
+       	{//Adapter Charging
+        	bq24296_set_iinlim(0x6); //IN current limit at 2A    
+        	bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
+		}
+		else if(STANDARD_HOST == bq24296_charging_type)
+       	{//USB Charging
+        	bq24296_set_iinlim(0x2); //IN current limit at 500mA
+        	bq24296_set_ichg(0x0);  //Fast Charging Current Limit at 500mA
+		}
 	
-        bq24296_set_iinlim(0x6); //IN current limit at 2A
-        //bq24296_set_ac_current();
-        //(2000 - 500)/64 = 0x17;
-        bq24296_set_BHot(0x3);//Disable boost mode thermal protection
-        bq24296_set_vreg(0x35);//Charge Voltage Limit 4.35V
-        bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
+	 	bq24296_set_BHot(0x3);//Disable boost mode thermal protection
+        	bq24296_set_vreg(0x35);//Charge Voltage Limit 4.35V
+        
         	mt_set_gpio_mode(gpio_number,gpio_on_mode);  
-	mt_set_gpio_dir(gpio_number,gpio_on_dir);
-	mt_set_gpio_out(gpio_number,gpio_on_out);
+	 	mt_set_gpio_dir(gpio_number,gpio_on_dir);
+	 	mt_set_gpio_out(gpio_number,gpio_on_out);
 
-	bq24296_dump_register();
+		bq24296_dump_register();
 
 		printk("gpio_number=0x%x,gpio_on_mode=%d,gpio_off_mode=%d\n", gpio_number, 		     gpio_on_mode, gpio_off_mode);
 	}
 	else
 	{
+		#if defined(CONFIG_USB_MTK_HDRC_HCD)
+   			if(mt_usb_is_device())
+		#endif 			
 
-#if defined(CONFIG_USB_MTK_HDRC_HCD)
-   		if(mt_usb_is_device())
-#endif 			
-    	{
-    printk("[bq24296]  charging_enable22222222222222222222222222222 ");
-	mt_set_gpio_mode(gpio_number,gpio_off_mode);  
-	mt_set_gpio_dir(gpio_number,gpio_off_dir);
-	mt_set_gpio_out(gpio_number,gpio_off_out);
+    		printk("[bq24296]  charging_enable22222222222222222222222222222 ");
+		mt_set_gpio_mode(gpio_number,gpio_off_mode);  
+		mt_set_gpio_dir(gpio_number,gpio_off_dir);
+		mt_set_gpio_out(gpio_number,gpio_off_out);
 
-	        bq24296_set_chg_config(1);
-				 bq24296_set_en_hiz(0x00);
-
-        bq24296_set_chg_config(0x01);   //CE enable
-    	}
+		 bq24296_set_en_hiz(0x00);
+        	bq24296_set_chg_config(0x00);   //CE disable
 	}
 		
 	return status;
@@ -659,25 +675,21 @@ static void hw_bc11_dump_register(void)
     if(*(kal_uint32 *)data < CHARGE_CURRENT_500_00_MA)
     {
         register_value = 0x10;
-			        bq24296_set_iinlim(0x6); //IN current limit at 2A
-        //bq24296_set_ac_current();
-        //(2000 - 500)/64 = 0x17;
-        bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
+		
+        bq24296_set_iinlim(0x2); //IN current limit at 500mA
+        bq24296_set_ichg(0x0);  //Fast Charging Current Limit at 500mA	
     }
     else
     {
     	array_size = GETARRAYNUM(INPUT_CS_VTH);
     	set_chr_current = bmt_find_closest_level(INPUT_CS_VTH, array_size, *(kal_uint32 *)data);
-    	register_value = charging_parameter_to_value(INPUT_CS_VTH, array_size ,set_chr_current);	
-			        bq24296_set_iinlim(0x6); //IN current limit at 2A
-        //bq24296_set_ac_current();
-        //(2000 - 500)/64 = 0x17;
-        bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
+    	register_value = charging_parameter_to_value(INPUT_CS_VTH, array_size ,set_chr_current);
+		
+	bq24296_set_iinlim(0x6); //IN current limit at 2A
+      bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
     }
-    
-    bq24296_set_ichg(0x17);
 
-	return status;
+    return status;
  } 	
 
 
@@ -762,8 +774,7 @@ kal_bool charging_type_detection_done(void)
 	 kal_uint32 status = STATUS_OK;
 #if defined(CONFIG_POWER_EXT)
 	 *(CHARGER_TYPE*)(data) = STANDARD_HOST;
-#else
-
+#else    
 	charging_type_det_done = KAL_FALSE;
 
 	/********* Step initial  ***************/		 
@@ -791,7 +802,10 @@ kal_bool charging_type_detection_done(void)
 		 {
 			 /********* Step B2 ***************/
 			 if(1 == hw_bc11_stepB2())
-			 {
+			 {    
+			       mt_set_gpio_mode(gpio_psel_number,gpio_psel_adapter_mode);  
+				mt_set_gpio_dir(gpio_psel_number,gpio_psel_adapter_dir);
+				mt_set_gpio_out(gpio_psel_number,gpio_psel_adapter_out);
 				 *(CHARGER_TYPE*)(data) = STANDARD_CHARGER;
 				 battery_xlog_printk(BAT_LOG_CRTI, "step B2 : STANDARD CHARGER!\r\n");
 			 }
@@ -803,11 +817,16 @@ kal_bool charging_type_detection_done(void)
 		 }
 		 else
 		 {
+		       mt_set_gpio_mode(gpio_psel_number,gpio_psel_usb_mode);  
+			mt_set_gpio_dir(gpio_psel_number,gpio_psel_usb_dir);
+			mt_set_gpio_out(gpio_psel_number,gpio_psel_usb_out);
 			*(CHARGER_TYPE*)(data) = STANDARD_HOST;
 			 battery_xlog_printk(BAT_LOG_CRTI, "step A2 : Standard USB Host!\r\n");
 		 }
  
 	}
+
+	bq24296_charging_type = *(CHARGER_TYPE*)(data);
  
 	 /********* Finally setting *******************************/
 	 hw_bc11_done();

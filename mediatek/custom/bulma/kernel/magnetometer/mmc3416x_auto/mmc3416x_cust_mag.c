@@ -5,11 +5,15 @@
 
 static struct mag_hw cust_mag_hw = {
     .i2c_num = 0,
+#ifdef USE_FOR_BULMA_HE
+    .direction = 2,
+#else
     .direction = 1,
+#endif
     .power_id = MT65XX_POWER_NONE,  /*!< LDO is not used */
     .power_vol= VOL_DEFAULT,        /*!< LDO is not used */
 };
-struct mag_hw* mmc3416x_get_cust_mag_hw(void) 
+struct mag_hw* mmc3516x_get_cust_mag_hw(void) 
 {
     return &cust_mag_hw;
 }

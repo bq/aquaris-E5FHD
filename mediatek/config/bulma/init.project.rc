@@ -28,6 +28,10 @@ on post-fs-data
 
     insmod /system/lib/modules/mtk_wmt_detect.ko
 
+    chmod 777 /dev/i2c_tfa9887L
+    chown system system /dev/i2c_tfa9887L
+    chmod 777 system/bin/climax_hostSW
+
 # Create char device file for WMT, GPS, BT, FM, WIFI
     mknod /dev/stpwmt c 190 0;
     mknod /dev/stpgps c 191 0;

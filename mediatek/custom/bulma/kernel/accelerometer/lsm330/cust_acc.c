@@ -5,9 +5,10 @@
 
 /*---------------------------------------------------------------------------*/
 static struct acc_hw cust_acc_hw = {
-    .i2c_num = 0,
+    .i2c_num = 1,
     .direction = 7,
-    .power_id = MT65XX_POWER_NONE,  /*!< LDO is not used */
+//    .power_id = MT65XX_POWER_NONE,  /*!< LDO is not used */
+    .power_id = MT6322_POWER_LDO_VCAM_IO,  /*!< LDO is used */
     .power_vol= VOL_DEFAULT,        /*!< LDO is not used */
     .firlen = 0, //old value 16                /*!< don't enable low pass fileter */
 };

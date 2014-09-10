@@ -310,7 +310,7 @@ const NVRAM_LENS_PARA_STRUCT OV13850AF_LENS_PARA_DEFAULT_VALUE =
 // ------------------------------------------------------------------------           
           },
 
-          2, // i4VAFC_FAIL_CNT;
+          1, // i4VAFC_FAIL_CNT;
           0, // i4CHANGE_CNT_DELTA;
 
           0, // i4LV_THRES;

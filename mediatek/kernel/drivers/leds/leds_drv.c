@@ -598,10 +598,14 @@ static int __init mt65xx_leds_probe(struct platform_device *pdev)
 		
 	}
 #ifdef CONTROL_BL_TEMPERATURE
-	
-		last_level = 0;  
-		limit = 255;
-		limit_flag = 0; 
+		last_level = 0;
+#ifdef CUSTOM_KERNEL_GYROSCOPE_BULMA  
+		limit = 180;//wangli
+		limit_flag = 1; //wangli
+#else
+		limit = 255;//wangli
+		limit_flag = 0; //wangli
+#endif
 		current_level = 0;
 		LEDS_DRV_DEBUG("[LED]led probe last_level = %d, limit = %d, limit_flag = %d, current_level = %d\n",last_level,limit,limit_flag,current_level);
 #endif

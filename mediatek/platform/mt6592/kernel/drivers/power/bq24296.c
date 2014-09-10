@@ -670,9 +670,6 @@ static int bq24296_driver_probe(struct i2c_client *client, const struct i2c_devi
 
     //---------------------
   // bq24296_hw_init();
-  bq24296_set_chg_config(0x2);  
-bq24296_set_boost_lim(0x1);//OTG current 1.5A
-        bq24296_set_boostv(0x7);//OTG voltage 5A
     bq24296_dump_register();
     chargin_hw_init_done = KAL_TRUE;
 	

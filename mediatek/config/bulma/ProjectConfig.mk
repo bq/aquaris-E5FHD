@@ -293,7 +293,7 @@ MTK_3GDONGLE_SUPPORT=no
 
 # yes: enable this feature
 # no: disable this feature
-MTK_AAL_SUPPORT=no
+MTK_AAL_SUPPORT=yes
 
 # For ACMT DEUG use
 MTK_ACMT_DEBUG=no
@@ -1033,11 +1033,11 @@ MTK_NFC_OMAAC_CMCC=no
 
 # enable smartcardservice
 # If MTK_NFC_OMAAC_GEMALTO is set as yes, OMAAC for GEMALTO is supported
-MTK_NFC_OMAAC_GEMALTO=no
+MTK_NFC_OMAAC_GEMALTO=yes
 
 # enable smartcardservice
 # If MTK_NFC_OMAAC_SUPPORTis set as yes, OMAAC is supported.
-MTK_NFC_OMAAC_SUPPORT=no
+MTK_NFC_OMAAC_SUPPORT=yes
 
 # We use this option (MTK_NFC_SE_NUM) to know the number of secure elements and the type of secure elements for the projects with NFC.
 MTK_NFC_SE_NUM=7

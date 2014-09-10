@@ -99,7 +99,7 @@ extern int iMultiWriteReg(u8 *pData, u16 lens, u16 i2cId);
 
 #define OV13850_multi_write_cmos_sensor(pData, lens) iMultiWriteReg((u8*) pData, (u16) lens, OV13850_WRITE_ID)
 
-#define OV13850_ORIENTATION IMAGE_V_MIRROR//IMAGE_H_MIRROR//IMAGE_NORMAL //IMAGE_V_MIRROR
+#define OV13850_ORIENTATION IMAGE_H_MIRROR//IMAGE_V_MIRROR//IMAGE_H_MIRROR//IMAGE_NORMAL //IMAGE_V_MIRROR
 
 kal_uint16 OV13850_read_cmos_sensor(kal_uint32 addr)
 {

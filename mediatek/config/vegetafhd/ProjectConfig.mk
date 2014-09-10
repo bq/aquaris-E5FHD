@@ -54,14 +54,14 @@ CUSTOM_HAL_EEPROM=dummy_eeprom
 CUSTOM_HAL_FLASHLIGHT=constant_flashlight
 
 # User space image sensor driver. Define  project used all image sensors. The value is combination of CUSTOM_HAL_MAIN_IMGSENSOR, CUSTOM_HAL_MAIN_BACKUP_IMGSENSOR, CUSTOM_HAL_SUB_IMGSENSOR, and CUSTOM_HAL_SUB_BACKUP_IMGSENSOR
-CUSTOM_HAL_IMGSENSOR = ov12830_mipi_raw ov8850_mipi_raw t4k04_mipi_raw ov8865_mipi_raw ov5648_mipi_raw
+CUSTOM_HAL_IMGSENSOR = ov12830_mipi_raw ov8850_mipi_raw t4k04_mipi_raw ov8865_mipi_raw ov5648_mipi_raw ov13850_mipi_raw
 
 # = CUSTOM_HAL_MAIN_LENS +CUSTOM_HAL_MAIN_BACKUP_LENS + CUSTOM_HAL_SUB_LENS + CUSTOM_HAL_SUB_BACKUP_LENS
-CUSTOM_HAL_LENS=fm50af dummy_lens
+CUSTOM_HAL_LENS=fm50af bu6424af dummy_lens
 CUSTOM_HAL_MAIN2_IMGSENSOR=
 
 # lens driver config for main camera (2nd solution)
-CUSTOM_HAL_MAIN_BACKUP_LENS=dummy_lens
+CUSTOM_HAL_MAIN_BACKUP_LENS=bu6424af
 
 # User space image sensor  driver: Main camera (rear camera) used sensor related tuning, setting and calibration information.Value is used main sensor name.
 CUSTOM_HAL_MAIN_IMGSENSOR=ov12830_mipi_raw
@@ -122,7 +122,7 @@ CUSTOM_KERNEL_GYROSCOPE=l3gd20
 CUSTOM_KERNEL_HEADSET=accdet
 
 # Kernel space image sensor driver. Define  project used all image sensors .The value is combination of CUSTOM_KERNEL_MAIN_IMGSENSOR, CUSTOM_KERNEL_MAIN_BACKUP_IMGSENSOR, CUSTOM_KERNEL_SUB_IMGSENSOR, and CUSTOM_KERNEL_SUB_BACKUP_IMGSENSOR
-CUSTOM_KERNEL_IMGSENSOR = ov12830_mipi_raw ov8850_mipi_raw t4k04_mipi_raw ov8865_mipi_raw ov5648_mipi_raw
+CUSTOM_KERNEL_IMGSENSOR = ov12830_mipi_raw ov8850_mipi_raw t4k04_mipi_raw ov8865_mipi_raw ov5648_mipi_raw ov13850_mipi_raw
 
 # key pad driver to report key event
 CUSTOM_KERNEL_KPD=kpd
@@ -131,7 +131,7 @@ CUSTOM_KERNEL_KPD=kpd
 CUSTOM_KERNEL_LEDS=mt65xx
 
 # same as CUSTOM_HAL_LENS
-CUSTOM_KERNEL_LENS=fm50af dummy_lens
+CUSTOM_KERNEL_LENS=fm50af bu6424af dummy_lens
 
 # compass driver to detect compass raw data and report orientatino data
 CUSTOM_KERNEL_MAGNETOMETER=mmc3416x_auto st480_auto
@@ -141,7 +141,7 @@ CUSTOM_KERNEL_MAIN2_IMGSENSOR=
 CUSTOM_KERNEL_MAIN_BACKUP_IMGSENSOR = t4k04_mipi_raw
 
 # lens driver config for main camera (2nd solution)
-CUSTOM_KERNEL_MAIN_BACKUP_LENS=dummy_lens
+CUSTOM_KERNEL_MAIN_BACKUP_LENS=bu6424af
 
 # Kernel space image sensor driver:Main camera (rear camera) used sensor driver.Value is used main sensor name.
 CUSTOM_KERNEL_MAIN_IMGSENSOR=ov12830_mipi_raw
@@ -1024,11 +1024,11 @@ MTK_NFC_OMAAC_CMCC=no
 
 # enable smartcardservice
 # If MTK_NFC_OMAAC_GEMALTO is set as yes, OMAAC for GEMALTO is supported
-MTK_NFC_OMAAC_GEMALTO=no
+MTK_NFC_OMAAC_GEMALTO=yes
 
 # enable smartcardservice
 # If MTK_NFC_OMAAC_SUPPORTis set as yes, OMAAC is supported.
-MTK_NFC_OMAAC_SUPPORT=no
+MTK_NFC_OMAAC_SUPPORT=yes
 
 # We use this option (MTK_NFC_SE_NUM) to know the number of secure elements and the type of secure elements for the projects with NFC.
 MTK_NFC_SE_NUM=7
