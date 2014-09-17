@@ -64,7 +64,7 @@ RESPIRATION_LAMP = yes
 CKT_APP_FLASHLIGHT = no
 export CKT_APP_FLASHLIGHT
 #ckt liutao 20140409 for close pa when volume is 0
-CKT_MUTE_CLOSE_PA = yes
+CKT_MUTE_CLOSE_PA = no
 
 # 4.35V电池——
 # 1. 0℃以下，不允许充电；

@@ -125,8 +125,9 @@ static int FL_preOn(void)
     {
         setRegEx(0x32,0x1,0x1,4);  //torch mode
         //setRegEx(0x35,flashCur[g_duty],0xf,0); //current
-        setRegEx(0x35,0x01,0xf,0); //current//modified by yi.guo 手电筒设为100ma
-	setRegEx(0x32,0,0x1,0);
+        //setRegEx(0x35,0x01,0xf,0); //current//modified by yi.guo 手电筒设为100ma
+	setRegEx(0x35,0x02,0xf,0); //wangli_20140717 150ma
+
         setRegEx(0xe2,0x40,0xff,0); //workaround, must call
         setRegEx(0xeb,0x40,0xff,0); //workaround, must call
         setRegEx(0x16,0x1,0x1,0); //power source on
@@ -141,10 +142,10 @@ static int FL_preOn(void)
         		//setRegEx(0x37,0x3,0x3,6); //time out, 800ms
 		}
 	else{
-		setRegEx(0x32,0x0,0x1,4);  //torch mode
+		setRegEx(0x32,0x1,0x1,4);  //torch mode
 	}
 	  setRegEx(0x35,flashCur[g_duty],0xf,0); 
-	  setRegEx(0x37,0x3,0x3,6); //time out, 800ms
+	  //setRegEx(0x37,0x3,0x3,6); //time out, 800ms
         setRegEx(0xe2,0x40,0xff,0); //workaround, must call
         setRegEx(0xeb,0x40,0xff,0); //workaround, must call
         setRegEx(0x16,0x1,0x1,0); //power source on
@@ -156,11 +157,11 @@ static int FL_Enable(void)
 {
     PK_DBG("FL_Enable+");
 	
-#if 0	
-     if(mt_set_gpio_mode(GPIO_CAMERA_FLASH_BACK_EN, GPIO_CAMERA_FLASH_BACK_EN_M_GPIO)){PK_DBG("[constant_flashlight] set gpio mode failed!! \n");}
-     if(mt_set_gpio_dir(GPIO_CAMERA_FLASH_BACK_EN,GPIO_DIR_OUT)){PK_DBG("[constant_flashlight] set gpio dir failed!! \n");}
-     if(mt_set_gpio_out(GPIO_CAMERA_FLASH_BACK_EN,GPIO_OUT_ONE)){PK_DBG("[constant_flashlight] set gpio failed!! \n");}	
-#endif
+//#if 0	
+     if(mt_set_gpio_mode(GPIO_CAMERA_FLASH_EN_PIN, GPIO_CAMERA_FLASH_EN_PIN_M_GPIO)){PK_DBG("[constant_flashlight] set gpio mode failed!! \n");}
+     if(mt_set_gpio_dir(GPIO_CAMERA_FLASH_EN_PIN,GPIO_DIR_OUT)){PK_DBG("[constant_flashlight] set gpio dir failed!! \n");}
+     if(mt_set_gpio_out(GPIO_CAMERA_FLASH_EN_PIN,GPIO_OUT_ONE)){PK_DBG("[constant_flashlight] set gpio failed!! \n");}	
+//#endif
     setRegEx(0x31,0x1,0x1,0); //flash en
     PK_DBG("FL_Enable-");
     return 0;
@@ -171,6 +172,10 @@ static int FL_Disable(void)
 	PK_DBG("FL_Disable line=%d\n",__LINE__);
     setRegEx(0x31,0x0,0x1,0);
     setRegEx(0x16,0x0,0x1,0);
+		 //disable back flashlight en pin
+     if(mt_set_gpio_mode(GPIO_CAMERA_FLASH_EN_PIN, GPIO_CAMERA_FLASH_EN_PIN_M_GPIO)){PK_DBG("[constant_flashlight] set gpio mode failed!! \n");}
+     if(mt_set_gpio_dir(GPIO_CAMERA_FLASH_EN_PIN,GPIO_DIR_OUT)){PK_DBG("[constant_flashlight] set gpio dir failed!! \n");}
+     if(mt_set_gpio_out(GPIO_CAMERA_FLASH_EN_PIN,GPIO_OUT_ZERO)){PK_DBG("[constant_flashlight] set gpio failed!! \n");}
 
     setRegEx(0xF7, 0x1, 0x1, 0);
     setRegEx(0xF3, 0x1, 0x1, 0);
@@ -179,9 +184,9 @@ static int FL_Disable(void)
     setRegEx(0xF3, 0x0, 0x1, 0);
 #if 0
 		 //disable back flashlight en pin
-     if(mt_set_gpio_mode(GPIO_CAMERA_FLASH_BACK_EN, GPIO_CAMERA_FLASH_BACK_EN_M_GPIO)){PK_DBG("[constant_flashlight] set gpio mode failed!! \n");}
-     if(mt_set_gpio_dir(GPIO_CAMERA_FLASH_BACK_EN,GPIO_DIR_OUT)){PK_DBG("[constant_flashlight] set gpio dir failed!! \n");}
-     if(mt_set_gpio_out(GPIO_CAMERA_FLASH_BACK_EN,GPIO_OUT_ZERO)){PK_DBG("[constant_flashlight] set gpio failed!! \n");}
+     if(mt_set_gpio_mode(GPIO_CAMERA_FLASH_EN_PIN, GPIO_CAMERA_FLASH_EN_PIN_M_GPIO)){PK_DBG("[constant_flashlight] set gpio mode failed!! \n");}
+     if(mt_set_gpio_dir(GPIO_CAMERA_FLASH_EN_PIN,GPIO_DIR_OUT)){PK_DBG("[constant_flashlight] set gpio dir failed!! \n");}
+     if(mt_set_gpio_out(GPIO_CAMERA_FLASH_EN_PIN,GPIO_OUT_ZERO)){PK_DBG("[constant_flashlight] set gpio failed!! \n");}
 #endif
     return 0;
 }

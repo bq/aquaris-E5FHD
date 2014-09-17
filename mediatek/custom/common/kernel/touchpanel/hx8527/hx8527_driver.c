@@ -56,6 +56,7 @@
 #include <linux/hwmsensor.h>
 #include <linux/hwmsen_dev.h>
 #include <linux/sensors_io.h>
+#include <cust_vibrator.h>
 
 //=============================================================================================================
 //
@@ -74,6 +75,8 @@ extern struct tpd_device *tpd;
 
 unsigned char GestureEnable = 0;//wangli_20140627
 #endif
+
+extern void custom_vibration_enable(int);
 
 //gionee songll 20131128 porting from mt6577 begin
 #ifdef GN_MTK_BSP_DEVICECHECK
@@ -6570,7 +6573,7 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 
 					input_report_key(tpd->dev, KEY_POWER, 0);
 					input_sync(tpd->dev);
-
+                    custom_vibration_enable(50);
 					printk("======== 0xFC T-T ========\n");				
 					break;
 				case GESTURE_NONE:

@@ -14,7 +14,7 @@
 #include <mach/mt_pm_ldo.h>
 #include <mach/mt_typedefs.h>
 #include <mach/mt_boot.h>
-
+#include <cust_vibrator.h>
 #include "cust_gpio_usage.h"
 
 #define FTS_GESTRUE 
@@ -60,6 +60,8 @@ unsigned char GestrueEnable=0; //0-不支持 1-支持
 
 //lenovo_sw liaohj merged from putaoya 2012-09-12
  #define TPD_MAX_PONIT       5 
+
+extern void custom_vibration_enable(int);
 #if defined(CHRGING_NOTIFY_FT5336)
 extern kal_bool check_charger_exist(void); 
 #endif
@@ -779,7 +781,8 @@ static unsigned char CTPM_FW[]=
  //#include "FT5336_HiKe_Vegeta_OGS_1080X1920_Truly0x5a_Ver0x15_20140617_app.i"
 //#include "FT5336_HiKe_Vegeta_OGS_1080X1920_Truly0x5a_Ver0x16_20140618_app.i"
 //#include "FT5336_HiKe_Vegeta_OGS_1080X1920_Truly0x5a_Ver0x17_20140620_app.i"
-#include "FT5336_HiKe_Vegeta_OGS_1080X1920_Truly0x5a_Ver0x18_20140626_app.i"
+//#include "FT5336_HiKe_Vegeta_OGS_1080X1920_Truly0x5a_Ver0x18_20140626_app.i"
+#include "FT5336_HiKe_Vegeta_OGS_1080X1920_Truly0x5a_Ver0x20_20140903_app.i"
 };
 
 #define IC_FT5X06	0
@@ -1687,6 +1690,7 @@ static void check_gesture(int gesture_id)
 			//input_report_key(tpd->dev, KEY_U, 0);
 			input_report_key(tpd->dev, KEY_POWER, 0);
 			input_sync(tpd->dev);
+            custom_vibration_enable(50);
 			}
 			break;
 		case GESTURE_O:

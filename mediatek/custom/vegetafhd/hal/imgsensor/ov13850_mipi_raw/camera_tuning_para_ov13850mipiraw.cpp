@@ -90,7 +90,7 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
         {
             1144,    // u4MinGain, 1024 base = 1x
             7680,    // u4MaxGain, 16x
-            70,    // u4MiniISOGain, ISOxx  
+            85,    // u4MiniISOGain, ISOxx  
             128,    // u4GainStepUnit, 1x/8 
             25,    // u4PreExpUnit 
             24,    // u4PreMaxFrameRate
@@ -124,8 +124,8 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             TRUE,    // bEnableCaptureThres
             TRUE,    // bEnableVideoThres
             TRUE,    // bEnableStrobeThres
-            54,    // u4AETarget
-            47,    // u4StrobeAETarget
+            50,    // u4AETarget
+            0,    // u4StrobeAETarget
             50,    // u4InitIndex
             4,    // u4BackLightWeight
             32,    // u4HistStretchWeight

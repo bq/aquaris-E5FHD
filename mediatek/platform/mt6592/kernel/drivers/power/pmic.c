@@ -777,7 +777,16 @@ void watchdog_int_handler(void)
 
     xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[watchdog_int_handler]....\n");
     
-    ret=pmic_config_interface(INT_STATUS0,0x1,0x1,4);    
+   // ret=pmic_config_interface(INT_STATUS0,0x1,0x1,4);    
+   ret=pmic_config_interface(CHR_CON13,0x1,0x1,8); //RG_CHRWDT_WR 
+   ret=pmic_config_interface(CHR_CON15,0x1,0x1,1);  //RG_CHRWDT_FLAG_WR
+   
+   xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "Reg[0x%x]=0x%x, Reg[0x%x]=0x%x, Reg[0x%x]=0x%x\n", 
+            CHR_CON13, upmu_get_reg_value(CHR_CON13),
+            CHR_CON15, upmu_get_reg_value(CHR_CON15),
+            INT_CON0, upmu_get_reg_value(INT_CON0)
+            );
+
 }
 
 #if 0 //defined(CONFIG_MTK_FPGA)

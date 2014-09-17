@@ -1208,7 +1208,7 @@ MTK_SHARED_SDCARD=yes       #ckt zhangyan 20140317 add for Single storage partit
 MTK_SHOW_MSENSOR_TOAST_SUPPORT=yes
 
 # A mechanism for customer to enable their own sign key.
-MTK_SIGNATURE_CUSTOMIZATION=no
+MTK_SIGNATURE_CUSTOMIZATION=yes
 MTK_SIGNMODEM_SUPPORT=yes
 
 # MTK_SIM1_SOCKET_TYPE=1: support type 1 socket type
@@ -1270,7 +1270,7 @@ MTK_SNS_SUPPORT=yes
 MTK_SNS_TWITTER_APP=yes
 
 # When enable, executing factory reset will preserve the data in /data/app/
-MTK_SPECIAL_FACTORY_RESET=yes
+MTK_SPECIAL_FACTORY_RESET=no
 
 # yes means reporting specific SM cause to framework from RIL
 # no means not report ing specific SM cause to framework from RIL.

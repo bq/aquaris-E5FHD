@@ -126,7 +126,8 @@ typedef enum {
 #define MMC3516X_DELAY_RST	50	/* ms */
 #define MMC3516X_DELAY_STDN	1	/* ms */
 
-#define MMC3516X_RESET_INTV	250
+// 苏 勇 2014年07月17日 10:30:57#define MMC3516X_RESET_INTV	250
+#define MMC3516X_RESET_INTV	150
 
 static u32 read_idx = 0;
 

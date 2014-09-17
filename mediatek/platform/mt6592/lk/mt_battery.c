@@ -171,10 +171,14 @@ extern kal_uint32 bq24296_get_chrg_stat(void);
 void kick_charger_wdt(void)
 {
     upmu_set_rg_chrwdt_td(0x0);           // CHRWDT_TD, 4s
+    
+    upmu_set_rg_chrwdt_en(0);  // CHRWDT_EN   
+    upmu_set_rg_chrwdt_int_en(0);         // CHRWDT_INT_EN  , don't use
+    upmu_set_rg_int_en_watchdog(0);	 //It works, INT_EN_WATCHDOG
+    
     upmu_set_rg_chrwdt_wr(1); 			  // CHRWDT_WR
-    upmu_set_rg_chrwdt_int_en(1);         // CHRWDT_INT_EN
-    upmu_set_rg_chrwdt_en(1);             // CHRWDT_EN
-    upmu_set_rg_chrwdt_flag_wr(1);        // CHRWDT_WR
+    upmu_set_rg_chrwdt_flag_wr(1);        // CHRWDT_FLAG_WR
+
 }
 
 kal_bool is_low_battery(kal_uint32 val)

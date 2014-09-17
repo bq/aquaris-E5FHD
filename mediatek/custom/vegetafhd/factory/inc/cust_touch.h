@@ -1,7 +1,7 @@
 #ifndef CUST_TOUCH_H
 #define CUST_TOUCH_H
 
-#define TOUCH_L1 40 //72 40       // linearity width
+#define TOUCH_L1 60 //72 40       // linearity width
 #define TOUCH_D1 30 //60 30      // deadzone width
 #define TOUCH_R1 20      // large circle 2*radius
 #define TOUCH_R2 12      // small circle 2*radius

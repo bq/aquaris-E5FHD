@@ -185,9 +185,9 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             TRUE,    // bEnableCaptureThres
             TRUE,    // bEnableVideoThres
             TRUE,    // bEnableStrobeThres
-            47,    // u4AETarget
+            57,    // u4AETarget
             0,    // u4StrobeAETarget
-            20,    // u4InitIndex
+            50,    // u4InitIndex
             4,    // u4BackLightWeight
             32,    // u4HistStretchWeight
             4,    // u4AntiOverExpWeight
@@ -238,157 +238,157 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             },
             // rD65Gain (D65 WB gain: 1.0 = 512)
             {
-                804,    // i4R
+                825,    // i4R
                 512,    // i4G
-                606    // i4B
+                596    // i4B
             }
         },
         // Original XY coordinate of AWB light source
         {
            // Strobe
             {
-                105,    // i4X
-                -229    // i4Y
+                48,    // i4X
+                -255    // i4Y
             },
             // Horizon
             {
-                -412,    // i4X
-                -229    // i4Y
+                -390,    // i4X
+                -218    // i4Y
             },
             // A
             {
-                -298,    // i4X
-                -259    // i4Y
+                -281,    // i4X
+                -234    // i4Y
             },
             // TL84
             {
-                -187,    // i4X
-                -225    // i4Y
+                -141,    // i4X
+                -244    // i4Y
             },
             // CWF
             {
-                -148,    // i4X
-                -268    // i4Y
+                -105,    // i4X
+                -320    // i4Y
             },
             // DNP
             {
-                -74,    // i4X
-                -239    // i4Y
+                -16,    // i4X
+                -258    // i4Y
             },
             // D65
             {
-                105,    // i4X
-                -229    // i4Y
+                120,    // i4X
+                -232    // i4Y
             },
             // DF
             {
-                29,    // i4X
-                -271    // i4Y
+                70,    // i4X
+                -306    // i4Y
             }
         },
         // Rotated XY coordinate of AWB light source
         {
             // Strobe
             {
-                101,    // i4X
-                -231    // i4Y
+                48,    // i4X
+                -255    // i4Y
             },
             // Horizon
             {
-                -416,    // i4X
-                -223    // i4Y
+                -390,    // i4X
+                -218    // i4Y
             },
             // A
             {
-                -302,    // i4X
-                -254    // i4Y
+                -281,    // i4X
+                -234    // i4Y
             },
             // TL84
             {
-                -191,    // i4X
-                -222    // i4Y
+                -141,    // i4X
+                -244    // i4Y
             },
             // CWF
             {
-                -152,    // i4X
-                -266    // i4Y
+                -105,    // i4X
+                -320    // i4Y
             },
             // DNP
             {
-                -78,    // i4X
-                -238    // i4Y
+                -16,    // i4X
+                -258    // i4Y
             },
             // D65
             {
-                101,    // i4X
-                -231    // i4Y
+                120,    // i4X
+                -232    // i4Y
             },
             // DF
             {
-                25,    // i4X
-                -271    // i4Y
+                70,    // i4X
+                -306    // i4Y
             }
         },
         // AWB gain of AWB light source
         {
             // Strobe 
             {
-                804,    // i4R
+                772,    // i4R
                 512,    // i4G
-                606    // i4B
+                677    // i4B
             },
             // Horizon 
             {
                 512,    // i4R
-                656,    // i4G
-                1563    // i4B
+                646,    // i4G
+                1472    // i4B
             },
             // A 
             {
                 512,    // i4R
-                540,    // i4G
-                1148    // i4B
+                546,    // i4G
+                1096    // i4B
             },
             // TL84 
             {
-                539,    // i4R
+                589,    // i4R
                 512,    // i4G
-                894    // i4B
+                862    // i4B
             },
             // CWF 
             {
-                602,    // i4R
+                685,    // i4R
                 512,    // i4G
-                898    // i4B
+                911    // i4B
             },
             // DNP 
             {
-                640,    // i4R
+                710,    // i4R
                 512,    // i4G
-                783    // i4B
+                742    // i4B
             },
             // D65 
             {
-                804,    // i4R
+                825,    // i4R
                 512,    // i4G
-                606    // i4B
+                596    // i4B
             },
             // DF 
             {
-                769,    // i4R
+                851,    // i4R
                 512,    // i4G
-                710    // i4B
+                704    // i4B
             }
         },
         // Rotation matrix parameter
         {
-            1,    // i4RotationAngle
+            0,    // i4RotationAngle
             256,    // i4Cos
-            4    // i4Sin
+            0    // i4Sin
         },
         // Daylight locus parameter
         {
-            -133,    // i4SlopeNumerator
+            -126,    // i4SlopeNumerator
             128    // i4SlopeDenominator
         },
         // AWB light area
@@ -402,111 +402,111 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             },
             // Tungsten
             {
-            -241,    // i4RightBound
-            -891,    // i4LeftBound
-            -168,    // i4UpperBound
-            -288    // i4LowerBound
+            -191,    // i4RightBound
+            -841,    // i4LeftBound
+            -176,    // i4UpperBound
+            -276    // i4LowerBound
             },
             // Warm fluorescent
             {
-            -241,    // i4RightBound
-            -891,    // i4LeftBound
-            -288,    // i4UpperBound
-            -408    // i4LowerBound
+            -191,    // i4RightBound
+            -841,    // i4LeftBound
+            -276,    // i4UpperBound
+            -396    // i4LowerBound
             },
             // Fluorescent
             {
-            -128,    // i4RightBound
-            -241,    // i4LeftBound
-            -157,    // i4UpperBound
-            -244    // i4LowerBound
+            -66,    // i4RightBound
+            -191,    // i4LeftBound
+            -164,    // i4UpperBound
+            -282    // i4LowerBound
             },
             // CWF
             {
-            -128,    // i4RightBound
-            -241,    // i4LeftBound
-            -244,    // i4UpperBound
-            -316    // i4LowerBound
+            -66,    // i4RightBound
+            -191,    // i4LeftBound
+            -282,    // i4UpperBound
+            -370    // i4LowerBound
             },
             // Daylight
             {
-            126,    // i4RightBound
-            -128,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            145,    // i4RightBound
+            -66,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Shade
             {
-            486,    // i4RightBound
-            126,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            505,    // i4RightBound
+            145,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Daylight Fluorescent
             {
-            126,    // i4RightBound
-            -100,    // i4LeftBound
-            -311,    // i4UpperBound
-            -410    // i4LowerBound
+            140,    // i4RightBound
+            -66,    // i4LeftBound
+            -312,    // i4UpperBound
+            -435    // i4LowerBound
             }
         },
         // PWB light area
         {
             // Reference area
             {
-            486,    // i4RightBound
-            -891,    // i4LeftBound
+            505,    // i4RightBound
+            -841,    // i4LeftBound
             0,    // i4UpperBound
-            -410    // i4LowerBound
+            -435    // i4LowerBound
             },
             // Daylight
             {
-            151,    // i4RightBound
-            -128,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            170,    // i4RightBound
+            -66,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Cloudy daylight
             {
-            251,    // i4RightBound
-            76,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            270,    // i4RightBound
+            95,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Shade
             {
-            351,    // i4RightBound
-            76,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            370,    // i4RightBound
+            95,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Twilight
             {
-            -128,    // i4RightBound
-            -288,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            -66,    // i4RightBound
+            -226,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Fluorescent
             {
-            151,    // i4RightBound
-            -291,    // i4LeftBound
-            -172,    // i4UpperBound
-            -316    // i4LowerBound
+            170,    // i4RightBound
+            -241,    // i4LeftBound
+            -182,    // i4UpperBound
+            -370    // i4LowerBound
             },
             // Warm fluorescent
             {
-            -202,    // i4RightBound
-            -402,    // i4LeftBound
-            -172,    // i4UpperBound
-            -316    // i4LowerBound
+            -181,    // i4RightBound
+            -381,    // i4LeftBound
+            -182,    // i4UpperBound
+            -370    // i4LowerBound
             },
             // Incandescent
             {
-            -202,    // i4RightBound
-            -402,    // i4LeftBound
-            -151,    // i4UpperBound
-            -311    // i4LowerBound
+            -181,    // i4RightBound
+            -381,    // i4LeftBound
+            -152,    // i4UpperBound
+            -312    // i4LowerBound
             },
             // Gray World
             {
@@ -520,45 +520,45 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
         {
             // Daylight
             {
-            714,    // i4R
+            752,    // i4R
             512,    // i4G
-            686    // i4B
+            653    // i4B
             },
             // Cloudy daylight
             {
-            875,    // i4R
+            897,    // i4R
             512,    // i4G
-            556    // i4B
+            547    // i4B
             },
             // Shade
             {
-            935,    // i4R
+            960,    // i4R
             512,    // i4G
-            519    // i4B
+            512    // i4B
             },
             // Twilight
             {
-            533,    // i4R
+            575,    // i4R
             512,    // i4G
-            927    // i4B
+            854    // i4B
             },
             // Fluorescent
             {
-            652,    // i4R
+            709,    // i4R
             512,    // i4G
-            780    // i4B
+            781    // i4B
             },
             // Warm fluorescent
             {
-            479,    // i4R
+            509,    // i4R
             512,    // i4G
-            1073    // i4B
+            1088    // i4B
             },
             // Incandescent
             {
-            470,    // i4R
+            479,    // i4R
             512,    // i4G
-            1055    // i4B
+            1025    // i4B
             },
             // Gray World
             {
@@ -571,13 +571,13 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
         {
             // Tungsten
             {
-            30,    // i4SliderValue
-            5214    // i4OffsetThr
+            0,    // i4SliderValue
+            6280    // i4OffsetThr
             },
             // Warm fluorescent	
             {
-            61,    // i4SliderValue
-            4440    // i4OffsetThr
+            0,    // i4SliderValue
+            5237    // i4OffsetThr
             },
             // Shade
             {
@@ -586,51 +586,51 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             },
             // Daylight WB gain
             {
-            634,    // i4R
+            686,    // i4R
             512,    // i4G
-            775    // i4B
+            716    // i4B
             },
             // Preference gain: strobe
+            {
+            515,    // i4R
+            512,    // i4G
+            505    // i4B
+            },
+            // Preference gain: tungsten
+            {
+            515,    // i4R
+            512,    // i4G
+            500    // i4B
+            },
+            // Preference gain: warm fluorescent
+            {
+            515,    // i4R
+            512,    // i4G
+            500    // i4B
+            },
+            // Preference gain: fluorescent
             {
             512,    // i4R
             512,    // i4G
             512    // i4B
             },
-            // Preference gain: tungsten
-            {
-            516,    // i4R
-            512,    // i4G
-            512    // i4B
-            },
-            // Preference gain: warm fluorescent
-            {
-            516,    // i4R
-            512,    // i4G
-            512    // i4B
-            },
-            // Preference gain: fluorescent
-            {
-            520,    // i4R
-            512,    // i4G
-            500    // i4B
-            },
             // Preference gain: CWF
             {
-            530,    // i4R
+            515,    // i4R
             512,    // i4G
             500    // i4B
             },
             // Preference gain: daylight
             {
-            520,    // i4R
+            515,    // i4R
             512,    // i4G
-            512    // i4B
+            505    // i4B
             },
             // Preference gain: shade
             {
-            512,    // i4R
+            515,    // i4R
             512,    // i4G
-            512    // i4B
+            505    // i4B
             },
             // Preference gain: daylight fluorescent
             {
@@ -648,10 +648,10 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
                 6500    // i4CCT[4]
             },
             {// Rotated X coordinate
-                -517,    // i4RotatedXCoordinate[0]
-                -403,    // i4RotatedXCoordinate[1]
-                -292,    // i4RotatedXCoordinate[2]
-                -179,    // i4RotatedXCoordinate[3]
+                -510,    // i4RotatedXCoordinate[0]
+                -401,    // i4RotatedXCoordinate[1]
+                -261,    // i4RotatedXCoordinate[2]
+                -136,    // i4RotatedXCoordinate[3]
                 0    // i4RotatedXCoordinate[4]
             }
         }

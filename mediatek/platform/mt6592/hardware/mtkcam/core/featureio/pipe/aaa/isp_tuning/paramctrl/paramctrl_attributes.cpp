@@ -380,7 +380,7 @@ setAEInfo(AE_INFO_T const &rAEInfo)
 
     //add by wjh for VEGETA-1213
     if(m_bANREnable == MFALSE){
-        m_rIspCamInfo.eIdx_ISO = eIDX_ISO_3200;
+        //m_rIspCamInfo.eIdx_ISO = eIDX_ISO_3200;
 //	MY_LOG("VEGETA-1215: m_bANREnable == MFALSE,set m_rIspCamInfo.eIdx_ISO = eIDX_ISO_3200");
 //    MY_LOG("DISABLE ANR: [+m_rIspCamInfo.eIdx_ISO](old, new)=(%d, %d)", m_rIspCamInfo.eIdx_ISO, eIdx_ISO);
     }
@@ -507,7 +507,7 @@ setIspANREnable(MBOOL enable)
 {
 	MY_LOG("setIspANREnable: %d", enable);
 	m_bANREnable = enable;
-	if(m_bANREnable == MFALSE)
-		m_rIspCamInfo.eIdx_ISO = eIDX_ISO_3200;
+	//if(m_bANREnable == MFALSE)
+		//m_rIspCamInfo.eIdx_ISO = eIDX_ISO_3200;
 }
 //add by wjh end
