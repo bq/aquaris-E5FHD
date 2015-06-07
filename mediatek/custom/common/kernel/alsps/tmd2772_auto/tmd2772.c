@@ -2756,8 +2756,23 @@ static void tmd2772_ps_calibrate(struct i2c_client *client)
 #ifdef VEGETAFHD
 long TMD2772_enable_ps_tp(int value)
 {
+    long err = 0;
+    int flag = value;
     struct TMD2772_priv *obj = i2c_get_clientdata(TMD2772_i2c_client);
-    TMD2772_enable_ps(obj->client, value);
+
+    mutex_lock(&mutex);
+    if( flag == 1)
+    {
+        tmd2772_ps_calibrate_call(obj->client);
+        TMD2772_init_client(obj->client);
+    }
+    if(err = TMD2772_enable_ps(obj->client, value))
+    {
+        mutex_unlock(&mutex);
+        return err;;
+    }
+    mutex_unlock(&mutex);
+
 }
 long TMD2772_read_ps_tp(u16 *value)
 { 

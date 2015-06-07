@@ -205,7 +205,7 @@ static unsigned int msdc_online_tuning(struct msdc_host   *host, unsigned fn, un
 #define MSDC_MAX_W_TIMEOUT_TUNE          (5)
 #define MSDC_MAX_W_TIMEOUT_TUNE_EMMC     (64)
 #define MSDC_MAX_R_TIMEOUT_TUNE          (3)
-#define  MSDC_MAX_POWER_CYCLE            (3)
+#define MSDC_MAX_POWER_CYCLE             (5)
 #ifdef FPGA_PLATFORM
 #define PWR_GPIO                         (0xf0001E84)
 #define PWR_GPIO_EO                      (0xf0001E88)
@@ -1858,6 +1858,8 @@ static void msdc_reset_crc_tune_counter(struct msdc_host *host,TUNE_COUNTER inde
 
 extern void mmc_remove_card(struct mmc_card *card);
 
+extern void mmc_detach_bus(struct mmc_host *host);
+extern void mmc_power_off(struct mmc_host *host);
 #if 0
 static void msdc_set_bad_card_and_remove(struct msdc_host *host)
 {
@@ -1881,10 +1883,14 @@ static void msdc_set_bad_card_and_remove(struct msdc_host *host)
 
         mmc_card_set_removed(host->mmc->card);
         spin_unlock_irqrestore(&host->remove_bad_card,flags);
-        if(((host->hw->flags & MSDC_CD_PIN_EN) && (got_polarity ^ host->hw->cd_level)) || (!(host->hw->flags & MSDC_CD_PIN_EN)))
+        if((host->hw->flags & MSDC_CD_PIN_EN) && (got_polarity ^ host->hw->cd_level))
             tasklet_hi_schedule(&host->card_tasklet);
-        else
+        else {
             mmc_remove_card(host->mmc->card);
+            host->mmc->card = NULL;
+            mmc_detach_bus(host->mmc);
+            mmc_power_off(host->mmc);	
+        }
 
         ERR_MSG("Do remove the bad card, block_bad_card=%d, card_inserted=%d", host->block_bad_card, host->card_inserted);
     }
@@ -2081,19 +2087,25 @@ static void msdc_set_timeout(struct msdc_host *host, u32 ns, u32 clks)
 {
     u32 base = host->base;
     u32 timeout, clk_ns;
+    u32 mode = 0;
 
     host->timeout_ns = ns;
     host->timeout_clks = clks;
-
-    clk_ns  = 1000000000UL / host->sclk;
-    timeout = ns / clk_ns + clks;
-    timeout = timeout >> 20; /* in 1048576 sclk cycle unit (83/85)*/
-    timeout = timeout > 1 ? timeout - 1 : 0;
-    timeout = timeout > 255 ? 255 : timeout;
-
+    if(host->sclk == 0){
+        timeout = 0; 
+    } else {
+        clk_ns  = 1000000000UL / host->sclk;
+        timeout = (ns + clk_ns - 1) / clk_ns + clks;
+        timeout = (timeout + (1 << 20) - 1) >> 20; /* in 1048576 sclk cycle unit */
+        sdr_get_field(MSDC_CFG, MSDC_CFG_CKMOD, mode);
+        timeout = mode >= 2 ? timeout * 2 : timeout; //DDR mode will double the clk cycles for data timeout
+        timeout = timeout > 1 ? timeout - 1 : 0;
+        timeout = timeout > 255 ? 255 : timeout;
+    }
     sdr_set_field(SDC_CFG, SDC_CFG_DTOC, timeout);
 
-    N_MSG(OPS, "Set read data timeout: %dns %dclks -> %d x 1048576  cycles", ns, clks, timeout + 1);
+    N_MSG(OPS, "msdc%d, Set read data timeout: %dns %dclks -> %d x 1048576  cycles, mode:%d, clk_freq=%dKHz\n",
+        host->id, ns, clks, timeout + 1, mode, (host->sclk / 1000));
 }
 
 /* msdc_eirq_sdio() will be called when EIRQ(for WIFI) */
@@ -2168,6 +2180,7 @@ static void msdc_tasklet_card(unsigned long arg)
         msdc_reset_pwr_cycle_counter(host);
         msdc_reset_crc_tune_counter(host, all_counter);
         msdc_reset_tmo_tune_counter(host, all_counter);
+        host->error_tune_enable = 1;
     }
     // [Fix me] if card remove during a request
     //msdc_gate_clock(host, 1); 
@@ -2382,6 +2395,9 @@ static u32 msdc_power_tuning(struct msdc_host *host)
     }
 #endif
     
+    if(!host->error_tune_enable) {
+        return 1; 
+    }
     if((host->sd_30_busy > 0) && (host->sd_30_busy <= MSDC_MAX_POWER_CYCLE)){
         host->power_cycle_enable = 1;
     }
@@ -2476,11 +2492,17 @@ static u32 msdc_power_tuning(struct msdc_host *host)
             ERR_MSG("the %d time, Power cycle Done, host->error(0x%x), ret(%d)", host->power_cycle,host->error, ret);
             (host->power_cycle)++;
         }else if (host->power_cycle == MSDC_MAX_POWER_CYCLE){
+#if 0
             ERR_MSG("the %d time, exceed the max power cycle time %d, go to remove the bad card, power_cycle_enable=%d", host->power_cycle, MSDC_MAX_POWER_CYCLE, host->power_cycle_enable);
-            
             spin_unlock(&host->lock);
             msdc_set_bad_card_and_remove(host);
             spin_lock(&host->lock);
+#else
+            if(host->error_tune_enable){
+                ERR_MSG("do disable error tune flow of bad SD card");
+                host->error_tune_enable = 0;
+            }
+#endif
         }
     }
     return ret;
@@ -2504,8 +2526,7 @@ static void msdc_send_stop(struct msdc_host *host)
 }
 
 //#ifdef MTK_SD_REINIT_SUPPORT
-extern void mmc_detach_bus(struct mmc_host *host);
-extern void mmc_power_off(struct mmc_host *host);
+
 #if 0
 static void msdc_remove_card(struct work_struct *work)
 {
@@ -3260,6 +3281,7 @@ static void msdc_pm(pm_message_t state, void *data)
             host->mmc->pm_flags |= MMC_PM_IGNORE_PM_NOTIFY;  /* just for double confirm */       
             mmc_remove_host(host->mmc);
         }
+        host->power_cycle = 0;
     } else if (evt == PM_EVENT_RESUME || evt == PM_EVENT_USER_RESUME) {
         if (!host->suspend){
             //ERR_MSG("warning: already resume");       
@@ -4294,14 +4316,15 @@ static void msdc_dma_start(struct msdc_host *host)
     u32 wints = MSDC_INTEN_XFER_COMPL | MSDC_INTEN_DATTMO | MSDC_INTEN_DATCRCERR ; 
     /* handle autocmd12 error in msdc_irq */
     if(host->autocmd & MSDC_AUTOCMD12)
-		wints |= MSDC_INT_ACMDCRCERR | MSDC_INT_ACMDTMO | MSDC_INT_ACMDRDY; 
+		wints |= MSDC_INT_ACMDCRCERR | MSDC_INT_ACMDTMO | MSDC_INT_ACMDRDY;    
+    
+    sdr_set_field(MSDC_DMA_CTRL, MSDC_DMA_CTRL_START, 1);
+    mb();
     if (host->hw->flags & MSDC_SDIO_IRQ)
         spin_lock_irqsave(&SDIO_IRQ_lock, flags_lock);		
     sdr_set_bits(MSDC_INTEN, wints);
     if (host->hw->flags & MSDC_SDIO_IRQ)
-        spin_unlock_irqrestore(&SDIO_IRQ_lock, flags_lock);    
-    mb();
-    sdr_set_field(MSDC_DMA_CTRL, MSDC_DMA_CTRL_START, 1);
+        spin_unlock_irqrestore(&SDIO_IRQ_lock, flags_lock); 
 
     N_MSG(DMA, "DMA start");
 }
@@ -6330,6 +6353,10 @@ static int msdc_tune_cmdrsp(struct msdc_host *host)
     u32 cur_cntr  = 0,orig_cmdrtc;
     u32 cur_dl_cksel = 0, orig_dl_cksel;
 
+    if(!host->error_tune_enable) {
+        return 1; 
+    }
+  
     sdr_get_field(MSDC_IOCON, MSDC_IOCON_RSPL, orig_rsmpl);
     sdr_get_field(MSDC_PAD_TUNE, MSDC_PAD_TUNE_CMDRDLY, orig_rrdly);
     sdr_get_field(MSDC_PATCH_BIT1, MSDC_PATCH_BIT1_CMD_RSP, orig_cmdrtc);
@@ -6430,6 +6457,10 @@ static int msdc_tune_read(struct msdc_host *host)
     u32 orig_dat0, orig_dat1, orig_dat2, orig_dat3, orig_dat4, orig_dat5, orig_dat6, orig_dat7;
     int result = 0;
 
+    if(!host->error_tune_enable) {
+        return 1; 
+    }
+  
 #if 1
     if (host->mclk >= 100000000){
         sel = 1;
@@ -6628,6 +6659,11 @@ static int msdc_tune_write(struct msdc_host *host)
     int sel = 0;
     int clkmode = 0;
     // MSDC_IOCON_DDR50CKD need to check. [Fix me] 
+    
+    if(!host->error_tune_enable) {
+        return 1; 
+    }
+  
 #if 1
     if (host->mclk >= 100000000){
         sel = 1;
@@ -6968,17 +7004,24 @@ static void msdc_ops_request_legacy(struct mmc_host *mmc, struct mmc_request *mr
         }
 
         // bring the card to "tran" state
-        if (data) {
+        if (data || ((cmd->opcode == MMC_SWITCH) && (host->hw->host_function != MSDC_SDIO))) {
             if (msdc_abort_data(host)) {
                 ERR_MSG("abort failed");
                 data_abort = 1;
                 if(host->hw->host_function == MSDC_SD){
+#if 0
                     if(host->card_inserted){
-                        ERR_MSG("go to remove the bad card"); 
+                        ERR_MSG("go to remove the bad card");
                         spin_unlock(&host->lock);
                         msdc_set_bad_card_and_remove(host);
-                        spin_lock(&host->lock);  
+                        spin_lock(&host->lock);
                     }
+#else
+                    if(host->error_tune_enable){
+                        ERR_MSG("do disable error tune flow of bad SD card");
+                        host->error_tune_enable = 0;
+                    }
+#endif
                     goto out;
                 }
             }            
@@ -7257,17 +7300,24 @@ static void msdc_tune_async_request(struct mmc_host *mmc, struct mmc_request *mr
 
         // bring the card to "tran" state
         // tuning param done if cmd crc error 
-        if (data) {
+        if (data || ((cmd->opcode == MMC_SWITCH) && (host->hw->host_function != MSDC_SDIO))) {
             if (msdc_abort_data(host)) {
                 ERR_MSG("abort failed");
                 data_abort = 1;
-                if(host->hw->host_function == MSDC_SD){                  
+                if(host->hw->host_function == MSDC_SD){  
+#if 0
                     if(host->card_inserted){
-                        ERR_MSG("go to remove the bad card"); 
+                        ERR_MSG("go to remove the bad card");
                         spin_unlock(&host->lock);
                         msdc_set_bad_card_and_remove(host);
-                        spin_lock(&host->lock);  
-                    }    
+                        spin_lock(&host->lock);
+                    }
+#else
+                    if(host->error_tune_enable){
+                        ERR_MSG("do disable error tune flow of bad SD card");
+                        host->error_tune_enable = 0;
+                    }
+#endif
                     goto out;    
                 }
             }            
@@ -8912,7 +8962,7 @@ static int msdc_drv_probe(struct platform_device *pdev)
     mem  = platform_get_resource(pdev, IORESOURCE_MEM, 0);
     irq  = platform_get_irq(pdev, 0);
     base = IO_PHYS_TO_VIRT(mem->start);
-
+    
     l_irq_data.irq = irq;
 
     BUG_ON((!hw) || (!mem) || (irq < 0));
@@ -9057,6 +9107,7 @@ static int msdc_drv_probe(struct platform_device *pdev)
     host->sd_30_busy = 0;
     msdc_reset_tmo_tune_counter(host, all_counter);
     msdc_reset_pwr_cycle_counter(host);
+    host->error_tune_enable = 1; 
     if (is_card_sdio(host)|| (host->hw->flags & MSDC_SDIO_IRQ))
     {
         host->saved_para.suspend_flag = 0;

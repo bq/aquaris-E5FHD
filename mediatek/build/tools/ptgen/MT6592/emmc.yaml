@@ -140,8 +140,8 @@
   Region: EMMC_USER
   Reserved: N
   Size_KB:
-    eng: 10240
-    user: 10240
+    eng: 20480
+    user: 20480
   Type: Raw data
 - Download: Y
   Download_File: recovery.img
@@ -156,8 +156,8 @@
   Region: EMMC_USER
   Reserved: N
   Size_KB:
-    eng: 10240
-    user: 10240
+    eng: 20480
+    user: 20480
   Type: Raw data
 - Download: Y
   Download_File: secro.img
@@ -252,8 +252,8 @@
   Region: EMMC_USER
   Reserved: N
   Size_KB:
-    eng: 921600
-    user: 921600
+    eng: 1048576
+    user: 1048576
   Type: EXT4
 - Download: Y
   Download_File: cache.img
@@ -268,8 +268,8 @@
   Region: EMMC_USER
   Reserved: N
   Size_KB:
-    eng: 131072
-    user: 131072
+    eng: 716800
+    user: 716800
   Type: EXT4
 - Download: Y
   Download_File: userdata.img
