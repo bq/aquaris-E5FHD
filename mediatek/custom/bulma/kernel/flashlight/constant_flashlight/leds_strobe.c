@@ -127,7 +127,6 @@ static int FL_preOn(void)
         //setRegEx(0x35,flashCur[g_duty],0xf,0); //current
         //setRegEx(0x35,0x01,0xf,0); //current//modified by yi.guo 手电筒设为100ma
 	setRegEx(0x35,0x02,0xf,0); //wangli_20140717 150ma
-
         setRegEx(0xe2,0x40,0xff,0); //workaround, must call
         setRegEx(0xeb,0x40,0xff,0); //workaround, must call
         setRegEx(0x16,0x1,0x1,0); //power source on

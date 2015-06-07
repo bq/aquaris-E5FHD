@@ -5,6 +5,8 @@
 #include "WCNChipController.h"
 #include "audio_custom_exp.h"
 
+#include "AudioStreamAttribute.h"
+
 #define LOG_TAG "AudioLoopbackController"
 #ifndef ANDROID_DEFAULT_CODE
 #include <cutils/xlog.h>
@@ -175,9 +177,21 @@ status_t AudioLoopbackController::OpenAudioLoopbackControlFlow(const audio_devic
     }
     else // ADC/DAC I2S
     {
+#if defined USE_FOR_BULMA_HE
+        // mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I03, AudioDigitalType::O03); // ADC_I2S_IN_L -> DAC_I2S_OUT_L
+        //mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I03, AudioDigitalType::O04); // ADC_I2S_IN_L -> DAC_I2S_OUT_R
+	mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I03, AudioDigitalType::O15);
+	mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I03, AudioDigitalType::O16);
+	mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I12, AudioDigitalType::O03);
+	mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I13, AudioDigitalType::O04);
+
+	mAudioDigitalInstance->SetHwDigitalGainMode(AudioDigitalType::HW_DIGITAL_GAIN2, AudioMEMIFAttribute::AFE_8000HZ, 0xC8);//8k
+	mAudioDigitalInstance->SetHwDigitalGain(0x09994, AudioDigitalType::HW_DIGITAL_GAIN2);//-10db
+	mAudioDigitalInstance->SetHwDigitalGainEnable(AudioDigitalType::HW_DIGITAL_GAIN2, true);
+#else
         mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I03, AudioDigitalType::O03); // ADC_I2S_IN_L -> DAC_I2S_OUT_L
         mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I03, AudioDigitalType::O04); // ADC_I2S_IN_L -> DAC_I2S_OUT_R
-
+#endif
         SetADCI2sInAttribute(ul_samplerate);
         SetDACI2sOutAttribute(dl_samplerate);
 

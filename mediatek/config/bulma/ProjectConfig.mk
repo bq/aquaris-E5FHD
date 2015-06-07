@@ -11,7 +11,7 @@ AUTO_ADD_GLOBAL_DEFINE_BY_VALUE=MTK_PLATFORM CUSTOM_KERNEL_LENS CUSTOM_KERNEL_MA
 
 # support build CTS or not
 BUILD_CTS=yes
-BUILD_GMS=no
+BUILD_GMS=yes
 
 # Decide whether to build kernel or not.
 BUILD_KERNEL=yes
@@ -528,7 +528,7 @@ MTK_CAMERA_APP_3DHW_SUPPORT=yes
 # yes:MTK extended camera framework no: Android pure camera framework
 MTK_CAMERA_BSP_SUPPORT=yes
 MTK_CAMERA_OT_SUPPORT=yes
-MTK_CAM_GESTURE_SUPPORT=yes
+MTK_CAM_GESTURE_SUPPORT=no
 MTK_CDS_EM_SUPPORT=yes
 MTK_CELL_BROADCAST_RECEIVER_SUPPORT=no
 MTK_CHIPTEST_INT=no
@@ -906,7 +906,7 @@ MTK_LCM_PHYSICAL_ROTATION=0
 
 # To enable/disable feature Google default live Wallpapers on the project. If MTK_LIVEWALLPAPER_APP = yes all Google default live wallpapers will be built into bootimage and users can use this feature on their device, vice versa.
 MTK_LIVEWALLPAPER_APP=yes
-MTK_LIVE_PHOTO_SUPPORT=yes
+MTK_LIVE_PHOTO_SUPPORT=no
 
 # it has two values - 1 or 2. 1 stands for google default lockscreen, which we drag the lock bar to right, then the phone can be unlocked. 2 stands for SlideLockScreen,  which we slide the screen up, then the phone can be unlocked.
 MTK_LOCKSCREEN_TYPE=1
@@ -1279,7 +1279,7 @@ MTK_SNS_SUPPORT=yes
 MTK_SNS_TWITTER_APP=yes
 
 # When enable, executing factory reset will preserve the data in /data/app/
-MTK_SPECIAL_FACTORY_RESET=yes
+MTK_SPECIAL_FACTORY_RESET=no
 
 # yes means reporting specific SM cause to framework from RIL
 # no means not report ing specific SM cause to framework from RIL.
@@ -1396,7 +1396,7 @@ MTK_VIDEO_THUMBNAIL_PLAY_SUPPORT=yes
 # To enable/disable feature Video Wallpaper on the project. If MTK_VLW_APP = yes MtkVideoLiveWallpaper.apk will be built into bootimage and users can use this feature on their device, vice versa.
 MTK_VLW_APP=yes
 MTK_VOICE_CONTACT_SEARCH_SUPPORT=no
-MTK_VOICE_UI_SUPPORT=yes
+MTK_VOICE_UI_SUPPORT=no #yes hailong.su 20140711
 MTK_VOICE_UNLOCK_SUPPORT=yes
 
 # support MTK's speech enhancement for VoIP phone call.

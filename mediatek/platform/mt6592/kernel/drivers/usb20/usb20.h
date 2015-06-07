@@ -78,7 +78,7 @@ extern kal_uint32 fan5405_reg_config_interface (kal_uint8 RegNum, kal_uint8 val)
 #elif defined(MTK_NCP1851_SUPPORT) || defined(MTK_BQ24196_SUPPORT)  
 extern void tbl_charger_otg_vbus(kal_uint32 mode);
 #elif defined(MTK_BQ24296_SUPPORT)
-  bq24296_set_chg_config(kal_uint32 val);  
+  bq24296_set_otg_config(kal_uint32 val);  
   bq24296_set_boost_lim(kal_uint32 val);
   bq24296_set_boostv(kal_uint32 val);
 #endif

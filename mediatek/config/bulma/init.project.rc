@@ -28,7 +28,7 @@ on post-fs-data
 
     insmod /system/lib/modules/mtk_wmt_detect.ko
 
-    chmod 777 /dev/i2c_tfa9887L
+    chmod 0770 /dev/i2c_tfa9887L
     chown system system /dev/i2c_tfa9887L
     chmod 777 system/bin/climax_hostSW
 

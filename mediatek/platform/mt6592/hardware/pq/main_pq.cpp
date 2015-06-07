@@ -16,10 +16,10 @@ unsigned long lcmindex = 0;
 
 const DISP_PQ_PARAM pqparam = 
 {
-u4SHPGain:2,
-u4SatGain:0,
-u4HueAdj:{9,9,12,12},
-u4SatAdj:{0,2,6,6}
+u4SHPGain:3,
+u4SatGain:3,
+u4HueAdj:{5,10,11,12},
+u4SatAdj:{0,2,7,4}
 };
 
 const DISP_PQ_PARAM pqparam_camera =

@@ -66,6 +66,10 @@
 
 extern struct tpd_device *tpd;
 
+//ckt-chunhui.lin
+#define FTS_PRESSURE
+#define PRESS_MAX	0xFF
+
 #ifdef Himax_Gesture
 #define GESTURE_DOUBLE_TAP 	0xFC
 #define GESTURE_NONE 		0xFB
@@ -73,7 +77,7 @@ extern struct tpd_device *tpd;
 #define GESTURE_E 		0xF9
 #define GESTURE_Z 		0xF8
 
-unsigned char GestureEnable = 0;//wangli_20140627
+unsigned char GestureEnable = 1;//wangli_20140729
 #endif
 
 extern void custom_vibration_enable(int);
@@ -268,6 +272,10 @@ static unsigned int HX_Gesture     =0;
 static bool HX_KEY_HIT_FLAG=false;
 static bool point_key_flag=false;
 static bool last_point_key_flag=false;
+
+#ifdef Himax_Gesture
+//static bool t_t_flag = false;//avoid TP report  twice while double tap
+#endif
 
 unsigned char FW_VER_MAJ_FLASH_ADDR;
 unsigned char FW_VER_MAJ_FLASH_LENG;
@@ -524,7 +532,7 @@ bool himax_debug_flag=false;
 	static int fw_size=0;
 	static unsigned char i_CTPM_FW[]=
 	{
-	#include "FW_CKT-BQ6_Truly_CT3S1403_1718_C05_2014-06-23_E.i" //Paul Check //wangli_20140613
+		#include "FW_CKT-BQ6_Truly_CT3S1403_173D_C13_2014-08-19_E.i" //Paul Check //wangli_20140819
 	};
 	
 	
@@ -2745,7 +2753,7 @@ static int himax_ts_poweron(void)
 	uint8_t buf0[11];
 	int ret = 0;
 	int config_fail_retry = 0;
-
+    //printk("======== [Himax]GOTO %s ========\n",__func__);//SWU_fail_0731
 	//----[ HX_85XX_C_SERIES_PWON]----------------------------------------------------------------------start
 	if (IC_TYPE == HX_85XX_C_SERIES_PWON)
 	{
@@ -3005,6 +3013,7 @@ static int himax_ts_poweron(void)
 	}
 	else if (IC_TYPE == HX_85XX_D_SERIES_PWON)
 	{
+        //printk("======== [Himax]%s IC_TYPE==HX_85XX_D_SERIES_PWON ========\n",__func__);//SWU_fail_0731
 		buf0[0] = 0x42;	//0x42
 		buf0[1] = 0x02;
 		ret = himax_i2c_write_data(i2c_client, buf0[0], 1, &(buf0[1]));
@@ -3111,7 +3120,8 @@ static int himax_ts_poweron(void)
 			printk(KERN_ERR "i2c_master_send failed addr = 0x%x\n",i2c_client->addr);
 			goto send_i2c_msg_fail;
 		} 
-		msleep(120); //120ms
+		//msleep(120); //120ms
+		msleep(50);
 
 		buf0[0] = 0x81;	//0x81
 		ret = himax_i2c_write_data(i2c_client, buf0[0], 0, &(buf0[1]));
@@ -3120,7 +3130,7 @@ static int himax_ts_poweron(void)
 			printk(KERN_ERR "i2c_master_send failed addr = 0x%x\n",i2c_client->addr);
 			goto send_i2c_msg_fail;
 		} 	
-		msleep(120); //120ms
+		//msleep(120); //120ms
 	}
 	else
 	{
@@ -3765,9 +3775,11 @@ void himax_HW_reset(void)
 		printk("Himax %s TP rst by HX_RST_BY_POWER %d\n",__func__,__LINE__);
 	#else
 		mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ZERO);
-		msleep(20);
+		//msleep(100);
+		msleep(5);
 		mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ONE);
-		msleep(20);
+		//msleep(100);
+        msleep(10);
 		printk("Himax %s TP rst by RST PIN %d\n",__func__,__LINE__);
 	#endif
 }
@@ -4075,7 +4087,7 @@ static ssize_t himax_register_store(struct device *dev,struct device_attribute *
 	return count;
 }
 
-static DEVICE_ATTR(register, (S_IWUSR|S_IRUGO|S_IWUGO),himax_register_show, himax_register_store);
+static DEVICE_ATTR(register, 0644, himax_register_show, himax_register_store);
 #endif
 //----[HX_TP_SYS_REGISTER]--------------------------------------------------------------------------------end
 
@@ -4616,7 +4628,7 @@ firmware_upgrade_done:
 	return count;
 }
 
-static DEVICE_ATTR(debug_level, 0777, himax_debug_level_show, himax_debug_level_dump);
+static DEVICE_ATTR(debug_level, 0755, himax_debug_level_show, himax_debug_level_dump);
 #endif
 //----[HX_TP_SYS_DEBUG_LEVEL]-------------------------------------------------------------------------------end
 
@@ -4867,7 +4879,7 @@ static ssize_t himax_diag_dump(struct device *dev,struct device_attribute *attr,
 	}
 	return count;
 }
-static DEVICE_ATTR(diag, (S_IWUSR|S_IRUGO|S_IWUGO),himax_diag_show, himax_diag_dump);
+static DEVICE_ATTR(diag, 0644, himax_diag_show, himax_diag_dump);
 #endif 
 //----[HX_TP_SYS_DIAG]--------------------------------------------------------------------------------------end
 
@@ -5188,7 +5200,7 @@ static ssize_t himax_flash_store(struct device *dev,struct device_attribute *att
 	}
 	return count;
 }
-static DEVICE_ATTR(flash_dump, (S_IWUSR|S_IRUGO|S_IWUGO),himax_flash_show, himax_flash_store);
+static DEVICE_ATTR(flash_dump, 0644, himax_flash_show, himax_flash_store);
 	
 static void himax_ts_flash_work_func(struct work_struct *work)
 {
@@ -6209,7 +6221,8 @@ int himax_charge_switch(s32 dir_update)
     int ret = 0;
     chr_status = upmu_is_chr_det();
 
-
+    mutex_lock(&i2c_access);//SWU_fail_0731
+    
 	if (chr_status)
 
 	{       
@@ -6247,7 +6260,8 @@ int himax_charge_switch(s32 dir_update)
 			#endif
 		}		
 	}
-
+    mutex_unlock(&i2c_access);//SWU_fail_0731
+    
 	return 0;
 }
 
@@ -6255,14 +6269,27 @@ int himax_charge_switch(s32 dir_update)
 
 
 
+#ifdef FTS_PRESSURE
+static  void tpd_down(int x, int y, int press, int p)//ckt-chunhui.lin
+#else
 static  void tpd_down(int x, int y, int p)
+#endif
 {
 #ifdef HX_PORTING_DEB_MSG
     TPD_DMESG("[Himax] tpd_down[%4d %4d]\n ", x, y);
 #endif
     input_report_key(tpd->dev, BTN_TOUCH, 1);
+#ifdef FTS_PRESSURE
+    unsigned int area = press;
+    if(area > 31) {
+	  area = (area >> 3); 
+    }
+    input_report_abs(tpd->dev, ABS_MT_PRESSURE, press);//ckt-chunhui.lin
+    input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, area);//ckt-chunhui.lin
+#else
     input_report_abs(tpd->dev, ABS_MT_PRESSURE, 1);//wangli
     input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, 20);//wangli
+#endif
     //input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, 1);	
     input_report_abs(tpd->dev, ABS_MT_POSITION_X, x);
     input_report_abs(tpd->dev, ABS_MT_POSITION_Y, y);
@@ -6283,7 +6310,12 @@ static  void tpd_up(int x, int y, int *count)
     TPD_DMESG("[Himax] tpd_up[%4d %4d]\n ", x, y);
 #endif
     //printk("\nHIMAX **************tpd_up[%4d %4d]***************\n ", x, y);//wangli_20140504
+#ifdef FTS_PRESSURE
+    input_report_abs(tpd->dev, ABS_MT_PRESSURE, 0); //ckt-chunhui.lin
+    input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, 0);
+#else
     input_report_abs(tpd->dev, ABS_MT_PRESSURE, 0);//wangli_20140429 
+#endif
     input_report_key(tpd->dev, BTN_TOUCH, 0);
     input_mt_sync(tpd->dev);
     if (FACTORY_BOOT == get_boot_mode()|| RECOVERY_BOOT == get_boot_mode())
@@ -6397,7 +6429,7 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 	if (tpd_halt) // Touch Driver is enter suspend
 	{
 
-		mutex_unlock(&i2c_access);
+		//mutex_unlock(&i2c_access);
 		//gionee ningyd add for CR01028440 20140125 begin
 		if(HX_Gesture==1)
 		{
@@ -6407,6 +6439,7 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 		}
 		else
 		{
+            mutex_unlock(&i2c_access);//SWU_fail_0731
 			//gionee ningyd add for CR01028440 20140125 end
 #ifdef HX_PORTING_DEB_MSG
 			TPD_DMESG("[Himax] Himax TP: tpd_touchinfo return ..\n");
@@ -6424,6 +6457,7 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 		mdelay(50);
 	}
 #ifdef HX_MTK_DMA
+
 	if(himax_i2c_read_data(i2c_client, 0x86, read_len, &(data[0])) < 0 )
 	{
 		printk(KERN_INFO "[HIMAX TP ERROR]:%s:i2c_transfer fail.\n", __func__);
@@ -6573,7 +6607,12 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 
 					input_report_key(tpd->dev, KEY_POWER, 0);
 					input_sync(tpd->dev);
+
+					HX_Gesture=0;//Avoid TP ic in state of chaos //wangli_20140818
+					tpd_halt = 0;                    
+
                     custom_vibration_enable(50);
+                    
 					printk("======== 0xFC T-T ========\n");				
 					break;
 				case GESTURE_NONE:
@@ -6924,7 +6963,7 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 			       if((x <= x_res) && (y <= y_res))
 			       {
 
-				       press = data[4*HX_MAX_PT+i];
+				       press = data[4*HX_MAX_PT+i] * 2;//ckt-chunhui.lin
 				       area = press;
 				       if(area > 31)
 				       {
@@ -7024,7 +7063,12 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 	       {
 		       if(point_key_flag==false)
 		       {
+#ifdef FTS_PRESSURE
+                               //ckt-chunhui.lin
+			       tpd_down(tpd_keys_dim_local[tpd_key-1][0],tpd_keys_dim_local[tpd_key-1][1], 1, 0);
+#else
 			       tpd_down(tpd_keys_dim_local[tpd_key-1][0],tpd_keys_dim_local[tpd_key-1][1], 0);
+#endif
 #ifdef HX_ESD_WORKAROUND
 			       TOUCH_UP_COUNTER = 0;
 #endif 
@@ -7035,8 +7079,13 @@ static int tpd_touchinfo(struct touch_info *cinfo, struct touch_info *pinfo)
 #endif
 		       point_key_flag=false;
 	       }
-#else    
+#else 
+#ifdef FTS_PRESSURE   
+               //ckt-chunhui.lin
+	       tpd_down(tpd_keys_dim_local[tpd_key-1][0],tpd_keys_dim_local[tpd_key-1][1], 1, 0);
+#else
 	       tpd_down(tpd_keys_dim_local[tpd_key-1][0],tpd_keys_dim_local[tpd_key-1][1], 0);
+#endif
 	       HX_KEY_HIT_FLAG=true;
 #ifdef HX_ESD_WORKAROUND
 	       TOUCH_UP_COUNTER = 0;
@@ -7134,9 +7183,14 @@ work_func_send_i2c_msg_fail:
 
 static void tpd_eint_interrupt_handler(void)
 {
-    //printk("TPD interrupt has been triggered\n");//wangli_20140504
+    printk("TPD interrupt has been triggered\n");//wangli_20140504
+/** /
     if(tpd_load_status==0)
+    {
+        printk("4.======== tpd_load_status is 0,return ========\n");
         return;
+    }
+/**/    
     tpd_flag = 1;
     wake_up_interruptible(&waiter);
 
@@ -7153,15 +7207,14 @@ static int touch_event_handler(void *unused)
 
 	do
 	{
-		//mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
+		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
 		set_current_state(TASK_INTERRUPTIBLE); 
 		wait_event_interruptible(waiter,tpd_flag!=0);
 
 		tpd_flag = 0;
-
 		set_current_state(TASK_RUNNING);
 		himax_charge_switch(0);
-		// mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
+		mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
 		if(tpd_touchinfo(&cinfo, &pinfo))
 		{
 			for(i = 0; i < HX_MAX_PT; i++)
@@ -7170,8 +7223,13 @@ static int touch_event_handler(void *unused)
 				{
 					printk("touch_event_handler HX_MAX_PT=%d,cinfo.x[i]=%d cinfo.y[i]=%d\n",HX_MAX_PT,cinfo.x[i],cinfo.y[i]);//wangli_20140504
 					if(HX_KEY_HIT_FLAG == false)
+#ifdef FTS_PRESSURE
+                                                //ckt-chunhui.lin
+						tpd_down(cinfo.x[i], cinfo.y[i], cinfo.p[i], cinfo.id[i]);
+#else
 						tpd_down(cinfo.x[i], cinfo.y[i], cinfo.id[i]);
 						//tpd_down(cinfo.y[i], cinfo.x[i], cinfo.id[i]); //wangli_20140507
+#endif
 				}
 			}
 			printk("\nhx_point_num = %d   last_hx_point_num = %d\n",hx_point_num,last_hx_point_num);//wangli_20140504
@@ -7194,6 +7252,8 @@ static int touch_event_handler(void *unused)
 	}
 	while(!kthread_should_stop());
 
+	mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);//wangli_20140730
+    
 	return 0;
 }
 
@@ -7288,32 +7348,29 @@ static int __devinit tpd_probe(struct i2c_client *client, const struct i2c_devic
 	mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ONE);
 	mdelay(100);
 
-	// TODO Interrupt / Reset Pin Setup
+	//Interrupt/Reset Pin Setup
 	mt_set_gpio_mode(GPIO_CTP_RST_PIN, GPIO_CTP_RST_PIN_M_GPIO);
 	mt_set_gpio_dir(GPIO_CTP_RST_PIN, GPIO_DIR_OUT);
         
-      printk("======== hx8527 init eint ========\n");//wangli
 	//Himax: SET Interrupt GPIO, no setting PULL LOW or PULL HIGH  
 	mt_set_gpio_mode(GPIO_CTP_EINT_PIN, GPIO_CTP_EINT_PIN_M_EINT);
 	mt_set_gpio_dir(GPIO_CTP_EINT_PIN, GPIO_DIR_IN);
 	mt_set_gpio_pull_enable(GPIO_CTP_EINT_PIN, GPIO_PULL_DISABLE);
 	//mt_set_gpio_pull_select(GPIO_CTP_EINT_PIN, GPIO_PULL_UP);
 
-	// TODO Power Pin Setup
+	//Power Pin Setup
 	//hwPowerOn(MT6323_POWER_LDO_VGP1, VOL_2800, "TP");
 	//hwPowerOn(MT65XX_POWER_LDO_VGP5, VOL_1800, "TP_EINT");
-	hwPowerOn(MT6323_POWER_LDO_VGP1, VOL_2800, "TP");//wangli
 	printk("======== hx8527 power setting ========\n");//wangli
+	hwPowerOn(MT6323_POWER_LDO_VGP1, VOL_2800, "TP");//wangli
 	msleep(100);
 
 	// HW Reset
 	mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ONE);
-
 	msleep(100);
 	mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ZERO);
 	msleep(100);
 	mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ONE);	
-
 	msleep(100);
 
 	// Allocate the MTK's DMA memory
@@ -7342,14 +7399,19 @@ static int __devinit tpd_probe(struct i2c_client *client, const struct i2c_devic
 	input_set_capability(tpd->dev, EV_KEY, KEY_F16);
 	input_set_capability(tpd->dev, EV_KEY, KEY_F17);*/
 #endif
+#ifdef FTS_PRESSURE
+        input_set_abs_params(tpd->dev, ABS_MT_PRESSURE, 0, PRESS_MAX, 0, 0); //ckt-chunhui.lin
+        input_set_abs_params(tpd->dev, ABS_MT_TOUCH_MAJOR, 0, PRESS_MAX, 0, 0);
+#endif
 
 #ifdef MT6592
-	mt_eint_set_sens(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_TYPE);
-	mt_eint_set_hw_debounce(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_DEBOUNCE_CN);
-	mt_eint_registration(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINTF_TRIGGER_FALLING, tpd_eint_interrupt_handler, 1);
+	//mt_eint_set_sens(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_TYPE);
+	//mt_eint_set_hw_debounce(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_DEBOUNCE_CN);
+	mt_eint_registration(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_TYPE, tpd_eint_interrupt_handler, 1);
+
 
 #else
-//Himax: Probe Interrupt Function (Trigger Type detemine by CUST_EINT_TOUCH_PANEL_SENSITIVE = 0 Level Trigger; 1 Edge Trigger)
+    //Himax: Probe Interrupt Function (Trigger Type detemine by CUST_EINT_TOUCH_PANEL_SENSITIVE = 0 Level Trigger; 1 Edge Trigger)
 	mt65xx_eint_set_sens(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_SENSITIVE);  
 	mt65xx_eint_set_hw_debounce(CUST_EINT_TOUCH_PANEL_NUM, CUST_EINT_TOUCH_PANEL_DEBOUNCE_CN);
 
@@ -7541,30 +7603,56 @@ static int tpd_resume(struct i2c_client *client)
 	himax_charge_switch(1);
 	#ifdef Himax_Gesture
 	if (GestureEnable==1)
-	{
-	
-            printk("[Himax]%s enter,do nothing\n",__func__);
-  
+	{	
 
-	
-	    printk("[Himax]%s enter , write 0x90:0x00 \n",__func__);
-	
-	    data[0] = 0x00;
+		printk("[Himax]%s enter , write 0x90:0x00 \n",__func__);
+        
+		mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);//SWU_fail_0731
+		mutex_lock(&i2c_access);//SWU_fail_0731
 
-	    himax_i2c_write_data(i2c_client, 0x91, 1,&data[0]);//normal mode wangli_20140613
+        HX_Gesture=0;
+		tpd_halt = 0;
+        
+        himax_HW_reset();
+        
+	    if(himax_ts_poweron() < 0)
+	    {
+		    printk("[Himax] tpd_resume himax_ts_poweron failed\n");
+	    }        
+/** /
+		data[0] = 0x00;
+		himax_i2c_write_data(i2c_client, 0x91, 1,&data[0]);//normal mode wangli_20140613
 
-            himax_i2c_write_data(i2c_client, 0x90, 1, &data[0]);
-	    //////---------------- modify on 1209////////////////
-	    mdelay(10);
-            himax_i2c_write_data(i2c_client, 0x82, 0, &data[0]);
-	    mdelay(50);
-            himax_i2c_write_data(i2c_client, 0x83, 0, &data[0]);
-	    mdelay(120);
-	    /////------------------modify on 1209///////////////
-	    HX_Gesture=0;
-	    tpd_halt = 0;
+		data[0] = 0x00;
+		himax_i2c_write_data(i2c_client, 0x90, 1, &data[0]);
+		//////---------------- modify on 1209////////////////
+		mdelay(10);
+
+		data[0] =0x00;
+		if( himax_i2c_write_data(i2c_client, 0xD7, 1, &(data[0])) < 0 )
+		{
+			printk("[Himax] smart_resume send comand D7 failed\n");
+			return -1;
+		}        
+		msleep(1);
+       
+		himax_i2c_write_data(i2c_client, 0x82, 0, &data[0]);
+		mdelay(120);        
+
+		himax_i2c_write_data(i2c_client, 0x83, 0, &data[0]);
+		mdelay(120);
+		/////------------------modify on 1209///////////////
+
+		himax_i2c_write_data(i2c_client, 0x81, 0, &data[0]);
+/**/
+        mutex_unlock(&i2c_access);//SWU_fail_0731
+		//msleep(120); //120ms
+		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);//wangli_20140730
+        
+		//HX_Gesture=0;
+		//tpd_halt = 0;
 	}
-    else
+	else
 	#endif
 	{
 	    #ifdef HX_CLOSE_POWER_IN_SLEEP			
@@ -7629,14 +7717,29 @@ static int tpd_suspend(struct i2c_client *client, pm_message_t message)
 	#ifdef Himax_Gesture		
 	if (GestureEnable == 1)
 	{
+		//mdelay(50);
+
+		mutex_lock(&i2c_access);//SWU_fail_0731  
+        
 		tpd_halt = 1;
-		mdelay(50);
+		HX_Gesture=1;       
+        
+        //clean interrupt stack
+		data[0] = 0x00;
+		himax_i2c_write_data(i2c_client, 0x88, 0, &data[0]);
+		//mdelay(50);
+		mdelay(5);
+        
 		data[0] = 0x10;
-    		himax_i2c_write_data(i2c_client, 0x90, 1, &data[0]);
+		himax_i2c_write_data(i2c_client, 0x90, 1, &data[0]);
+        
+		mutex_unlock(&i2c_access);//SWU_fail_0731
+		//mdelay(50);
+        
 		printk("[Himax]%s enter , write 0x90:0x10 \n",__func__);
-		HX_Gesture=1;
+		
 	}
-    	else
+	else
 	#endif
 	{
     	#ifdef HX_TP_SYS_FLASH_DUMP
@@ -7716,7 +7819,9 @@ static ssize_t store_control_double_tap(struct device *dev,struct device_attribu
 	if(buf != NULL && size != 0)
 	{
 		printk("[hx8527]store_control_double_tap buf is %s and size is %d \n",buf,size);
+		mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
 		GestureEnable = simple_strtoul(buf,&pvalue,16);
+		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
 		printk("[hx8527]store_control_double_tap : %s\n",GestureEnable==0 ? "Disable" : "Enable");
 	}
 }

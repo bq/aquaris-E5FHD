@@ -39,13 +39,27 @@
 #define CMDQ_DEFAULT_PREDUMP_TIMEOUT_MS     (100)
 #define CMDQ_DEFAULT_PREDUMP_RETRY_COUNT      (8)
 
-
 #define CMDQ_INVALID_THREAD     (-1)
+
+//
+// log
+//
+#define CMDQ_LOG(string, args...) \
+    if(1) \
+    { \
+        printk(KERN_DEBUG "[CMDQ]"string, ##args); \
+    }
 
 #define CMDQ_MSG(string, args...)                                                                                   \
     if(cmdq_core_should_print_msg())                                                                                \
     {                                                                                                               \
         printk(KERN_DEBUG "[CMDQ]"string, ##args);                                                                 \
+    }
+
+#define CMDQ_VERBOSE(string, args...) \
+    if(cmdq_core_should_print_msg()) \
+    { \
+        printk(KERN_INFO "[CMDQ]"string, ##args); \
     }
 
 #define CMDQ_ERR(string, args...)                                                                                   \
@@ -62,25 +76,41 @@
 	    xlog_printk(ANDROID_LOG_ERROR, tag, string, ##args);                                                        \
     } while(0)
 
+//
+// get time notice: 
+// .void do_gettimeofday(struct timeval *tv)
+// .struct timeval {
+//      __kernel_time_t	     tv_sec;	/* seconds */
+//	    __kernel_suseconds_t tv_usec;	/* microseconds */
+//  }
+//
 #define CMGQ_GET_CURRENT_TIME(value)                                                                                \
 {                                                                                                                   \
     do_gettimeofday(&(value));                                                                                      \
 }
 
-#define CMDQ_GET_TIME_DURATION(start,                                                                               \
-                               end,                                                                                 \
-                               diff)                                                                                \
-{                                                                                                                   \
-    int32_t time1;                                                                                                  \
-    int32_t time2;                                                                                                  \
-                                                                                                                    \
-    time1 = start.tv_sec * 1000000 + start.tv_nsec / 1000;                                                          \
-    time2 = end.tv_sec   * 1000000 + end.tv_nsec   / 1000;                                                          \
-                                                                                                                    \
-    diff = ((time2 - time1) / 1000); /* in ms */                                                                    \
+// get duration in millisecond(ms)
+#define CMDQ_GET_TIME_DURATION(start, end, duration)       \
+{                                                          \
+    int32_t time1;                                         \
+    int32_t time2;                                         \
+                                                           \
+    time1 = start.tv_sec * 1000000 + start.tv_usec;        \
+    time2 = end.tv_sec   * 1000000 + end.tv_usec;          \
+                                                           \
+    duration = (time2 - time1) / 1000;                     \
 }
 
 #endif // __KERNEL__
+
+
+typedef enum CMDQ_THR_IRQ_FLAG_ENUM
+{
+    CMDQ_THR_IRQ_FALG_EXEC_CMD       = 0x01,
+    CMDQ_THR_IRQ_FALG_INSTN_TIMEOUT  = 0x02,
+    CMDQ_THR_IRQ_FALG_INVALID_INSTN  = 0x10
+} CMDQ_THR_IRQ_FLAG_ENUM;
+
 
 typedef enum CMDQ_SCENARIO_ENUM
 {
@@ -151,7 +181,8 @@ enum
 };
 
 
-/**callback to notify engine timeout/reset
+/**
+ * callback to notify engine timeout/reset
  * params
  *     init32_t engineFlag
  */ 
@@ -174,6 +205,26 @@ typedef enum TASK_STATE_ENUM
     TASK_STATE_WAITING,     // allocated but waiting for available thread
 } TASK_STATE_ENUM;
 
+
+
+typedef struct cmdqDebugPortStruct
+{
+    bool MDP_ROTO; 
+    bool MDP_ROTCO; 
+    bool MDP_ROTVO; 
+}cmdqDebugPortStruct; 
+
+typedef struct cmdqCommandStruct
+{
+    uint32_t scenario;              // [IN] deprecated. will remove in the future.
+    uint32_t priority;              // [IN] task schedule priorty. this is NOT HW thread priority.
+    uint32_t engineFlag;            // [IN] bit flag of engines used.
+    uint32_t *pVABase;              // [IN] pointer to instruction buffer
+    uint32_t blockSize;             // [IN] size of instruction buffer, in bytes.
+    
+    cmdqDebugPortStruct debugPortData;  // [IN] M4U port config debug data
+} cmdqCommandStruct;
+
 typedef struct TaskStruct
 {
     struct list_head    listEntry;
@@ -195,11 +246,15 @@ typedef struct TaskStruct
     int32_t             blockSize;
     uint32_t            *pCMDEnd;
     int32_t             reorder;
+    int32_t             irqFlag;
 
     // For statistics
-    struct timespec     trigger;
-    struct timespec     gotIRQ;
-    struct timespec     wakedUp;
+    struct timeval     trigger;
+    struct timeval     gotIRQ;
+    struct timeval     wakedUp;
+
+    // debug
+    cmdqDebugPortStruct debugPortData;
 } TaskStruct;
 
 
@@ -215,8 +270,8 @@ typedef struct EngineStruct
 typedef struct ThreadStruct
 {
     uint32_t            taskCount;
-    uint32_t            waitCookie;
-    uint32_t            nextCookie;
+    uint32_t            waitCookie;     // the min cookie value which should be handled in ISR
+    uint32_t            nextCookie;     // the cookie value which will be assigned to a new task
     TaskStruct          *pCurTask[CMDQ_MAX_TASK_COUNT];
 } ThreadStruct;
 
@@ -227,11 +282,11 @@ typedef struct RecordStruct
     int32_t             priority;
     int32_t             reorder;
 
-    struct timespec     start;
-    struct timespec     trigger;
-    struct timespec     gotIRQ;
-    struct timespec     wakedUp;
-    struct timespec     done;
+    struct timeval     start;
+    struct timeval     trigger;
+    struct timeval     gotIRQ;
+    struct timeval     wakedUp;
+    struct timeval     done;
 } RecordStruct;
 
 
@@ -250,7 +305,7 @@ typedef struct WarngingStrcut
     uint32_t            taskCount;          // total task count in thread when IRQ received
     uint32_t            cookie;             // hw thread executed counter
     uint32_t            irqFlag;            // IRQ value
-    struct timespec     gotIRQ;             // time stamp get IRQ
+    struct timeval     gotIRQ;             // time stamp get IRQ
 }WarngingStrcut; 
 
 
@@ -297,19 +352,25 @@ int32_t cmdqSuspendTask(void);
 
 int32_t cmdqResumeTask(void);
 
+void cmdq_handle_done_unlocked(int32_t thread, uint32_t value, const bool attachWarning);
+void cmdq_handle_error_unlocked(int32_t thread, uint32_t value, const bool attachWarning);
+void cmdqHandleIRQ(int32_t thread, const uint32_t value); 
+
 void cmdqHandleError(int32_t thread, uint32_t value);
 
 void cmdqHandleDone(int32_t thread, uint32_t value);
 
-int32_t cmdqSubmitTask(int32_t  scenario,
-                       int32_t  priority,
-                       uint32_t engineFlag,
-                       void     *pCMDBlock,
-                       int32_t  blockSize);
+int32_t cmdqSubmitTask(cmdqCommandStruct *pCommandDesc);
+
 
 void cmdqDeInitialize(void);
 
 bool cmdq_core_should_print_msg(void);
+void cmdq_debug_set_progressive_timeout(bool enable);
+void cmdq_debug_set_sw_timeout(
+            const uint32_t sw_timeout_ms,
+            const uint32_t predump_start_time_ms,
+            const uint32_t predump_duration_ms);
 
 #ifdef __cplusplus
 }

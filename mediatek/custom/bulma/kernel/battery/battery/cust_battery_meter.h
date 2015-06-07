@@ -15,8 +15,18 @@
 
 /* ADC Channel Number */
 #define CUST_TABT_NUMBER 17
+#if defined(MTK_BQ24196_SUPPORT)\
+	||defined(MTK_BQ24296_SUPPORT)
+#define BAT_VOL_USE_ISENSE
+#define SWCHR_POWER_PATH 
+#endif
+#if defined(BAT_VOL_USE_ISENSE)
 #define VBAT_CHANNEL_NUMBER      7
 #define ISENSE_CHANNEL_NUMBER	 6
+#else
+#define VBAT_CHANNEL_NUMBER      7
+#define ISENSE_CHANNEL_NUMBER	 6
+#endif
 #define VCHARGER_CHANNEL_NUMBER  4
 #define VBATTEMP_CHANNEL_NUMBER  5
 
@@ -35,19 +45,20 @@
 #define FG_METER_RESISTANCE 	0
 
 /* Qmax for battery  */
-#define Q_MAX_POS_50    3069
-#define Q_MAX_POS_25    3045
-#define Q_MAX_POS_0     2789
-#define Q_MAX_NEG_10    3051
+#define Q_MAX_POS_50    4117
+#define Q_MAX_POS_25    4170
+#define Q_MAX_POS_0     4043
+#define Q_MAX_NEG_10    3758
 
-#define Q_MAX_POS_50_H_CURRENT    3047
-#define Q_MAX_POS_25_H_CURRENT    3001
-#define Q_MAX_POS_0_H_CURRENT     1318
-#define Q_MAX_NEG_10_H_CURRENT    2371
+#define Q_MAX_POS_50_H_CURRENT    4083
+#define Q_MAX_POS_25_H_CURRENT    4099
+#define Q_MAX_POS_0_H_CURRENT     3620
+#define Q_MAX_NEG_10_H_CURRENT    2520
+
 
 
 /* Discharge Percentage */
-#define OAM_D5		 1		//  1 : D5,   0: D2
+#define OAM_D5		 0		//  1 : D5,   0: D2
 
 
 /* battery meter parameter */

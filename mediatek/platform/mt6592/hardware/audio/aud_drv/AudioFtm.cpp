@@ -124,6 +124,20 @@
 #include "AudioVIBSPKControl.h"
 #include "AudioCompFltCustParam.h"
 
+#ifdef USING_TFA9890_EXTAMP
+extern "C" {
+#include "tfa9890.h"
+}  
+#endif
+
+#if defined(USING_TFA9890_EXTAMP)
+//extern uint8_t Tfa9890_IsFound(void);
+static uint8_t tfa9890_isfound=0;
+uint8_t Tfa9890_IsFound(void)
+{
+   return tfa9890_isfound==0?1:0;
+}
+#endif
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -1086,13 +1100,28 @@ int AudioFtm::LouderSPKTest(char left_channel, char right_channel)
     {
         ReleaseClock();
         Afe_Enable_SineWave(false);
-        Audio_Set_Speaker_Off(Channel_Stereo);
+#ifdef USING_TFA9890_EXTAMP
+ 	 if(Tfa9890_IsFound())
+	{
+		tfa9890_SpeakerOff();
+ 	 }
+#else
+	Audio_Set_Speaker_Off(Channel_Stereo);
+#endif
     }
     else
     {
         //Request Analog clock before access analog hw
         RequestClock();
         Afe_Enable_SineWave(true);
+#ifdef USING_TFA9890_EXTAMP
+	    if(Tfa9890_IsFound())
+	    {
+		    tfa9890_setSamplerate(44100);
+		    tfa9890_EQset(0);
+		    tfa9890_SpeakerOn();
+	    }		
+#else
         if (left_channel == 1 && right_channel == 1)
         {
             Audio_Set_Speaker_On(Channel_Stereo);
@@ -1105,6 +1134,7 @@ int AudioFtm::LouderSPKTest(char left_channel, char right_channel)
         {
             Audio_Set_Speaker_On(Channel_Left);
         }
+#endif
     }
     return true;
 }

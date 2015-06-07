@@ -1,13 +1,17 @@
-obj-$(CONFIG_MTK_PMIC)          += pmic.o upmu_common.o ncp6335.o fan53555.o tps6128x.o
+obj-$(CONFIG_MTK_PMIC)          += pmic.o upmu_common.o ncp6335.o fan53555.o
 
 ifeq ($(MTK_MT6333_SUPPORT),yes)
     obj-$(CONFIG_MTK_PMIC) += mt6333.o
 endif
 
+ifeq ($(MTK_TPS61280_SUPPORT),yes)
+  obj-$(CONFIG_MTK_PMIC) += tps6128x.o
+endif
+
 obj-$(CONFIG_MTK_SMART_BATTERY) += battery_meter_hal.o 
 
 ifeq ($(MTK_BQ24296_SUPPORT),yes) 
-    obj-$(CONFIG_MTK_SMART_BATTERY) += bq24296.o charging_hw_bq24296.o
+    obj-$(CONFIG_MTK_SMART_BATTERY) += addon/
 else
   ifeq ($(MTK_BQ24196_SUPPORT),yes) 
       obj-$(CONFIG_MTK_SMART_BATTERY) += addon/

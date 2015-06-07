@@ -371,7 +371,7 @@ int i;
 #endif
         int ii = 0;
 tfa9887_dev = filp->private_data;
-        printk("tfa9887_dev is 0x%x\n",tfa9887_dev);
+        //printk("tfa9887_dev is 0x%x\n",tfa9887_dev);
 if (count > MAX_BUFFER_SIZE)
 {
 count = MAX_BUFFER_SIZE;

@@ -178,9 +178,24 @@ static DEFINE_MUTEX(fwupgrade_mutex);
 atomic_t    upgrading;
 #endif /* CONFIG_SUPPORT_FTS_CTP_UPG */
 
+//************* add for doubletap + psensor ************//
+unsigned short ps_data;
+extern long TMD2772_enable_ps_tp(int value);
+extern long TMD2772_read_ps_tp(u16 *pvalue);
+extern int TMD2772_get_ps_value_tp(u16 value);
+//************* add for doubletap + psensor ************//
 
 int g_v_magnify_x =TPD_VELOCITY_CUSTOM_X;
 int g_v_magnify_y =TPD_VELOCITY_CUSTOM_Y;
+
+#define TP_CHECK_CHARGER  // jzw modify:for check charger state;
+#if defined(TP_CHECK_CHARGER)
+#define  CHECK_CHARGER_WORK_DELAY_MS   500//ms
+static void check_charger_worker(struct work_struct *work);
+DECLARE_DELAYED_WORK(check_charger_work,check_charger_worker);
+static kal_bool s_charger_exist = KAL_FALSE;
+#endif
+
 static int tpd_misc_open(struct inode *inode, struct file *file)
 {
 /*
@@ -1684,13 +1699,22 @@ static void check_gesture(int gesture_id)
 		case GESTURE_DOUBLECLICK:
 			if(GestrueEnable)
 			{
-			//input_report_key(tpd->dev, KEY_U, 1);
-			input_report_key(tpd->dev, KEY_POWER, 1);
-			input_sync(tpd->dev);
-			//input_report_key(tpd->dev, KEY_U, 0);
-			input_report_key(tpd->dev, KEY_POWER, 0);
-			input_sync(tpd->dev);
-            custom_vibration_enable(50);
+				TMD2772_enable_ps_tp(1);
+				msleep(10);
+				TMD2772_read_ps_tp(&ps_data);                    
+				printk("======== TMD2772: ps_data=%d ========\n",ps_data);
+                   
+				if (ps_data <= 500) {
+					 printk("======== 2. T-T ps open ========\n");	
+					input_report_key(tpd->dev, KEY_POWER, 1);
+					input_sync(tpd->dev);
+					input_report_key(tpd->dev, KEY_POWER, 0);
+					input_sync(tpd->dev);
+					custom_vibration_enable(50);
+				} else {
+					printk("======== 1. T-T ps close ========\n");
+				}
+				TMD2772_enable_ps_tp(0);
 			}
 			break;
 		case GESTURE_O:
@@ -1902,6 +1926,24 @@ static int ft5x0x_read_Touchdata(void)
 	 wake_up_interruptible(&waiter);
 	 
  }
+
+ #if defined(TP_CHECK_CHARGER)
+ static void check_charger_worker(struct work_struct *work)
+ {
+    kal_bool charger_exist = check_charger_exist();
+ 	if (s_charger_exist != charger_exist) {
+		printk("jzw;<ft5336>,%s:s_charger_exist=%d,charger_exist=%d",
+			__func__,s_charger_exist,charger_exist);
+		s_charger_exist = charger_exist;
+		if (s_charger_exist == KAL_TRUE) {
+			ft5x0x_write_reg(0x8B,0x01);
+		} else {
+    		ft5x0x_write_reg(0x8B,0x00);
+    	}
+ 	}
+	schedule_delayed_work(&check_charger_work, msecs_to_jiffies(CHECK_CHARGER_WORK_DELAY_MS));
+ }
+#endif
  static int __devinit tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
  {	 
 	int retval = TPD_OK;
@@ -2032,7 +2074,10 @@ reset_proc:
     	printk("[TSP] ret =%d\n",ret);
 	#endif
 //end
-	
+#if defined(TP_CHECK_CHARGER)
+		schedule_delayed_work(&check_charger_work, msecs_to_jiffies(CHECK_CHARGER_WORK_DELAY_MS));
+#endif
+
 	ft5336_thread = kthread_run(touch_event_handler, 0, TPD_DEVICE);
 	 if (IS_ERR(ft5336_thread))
 		 { 
@@ -2107,19 +2152,7 @@ reset_proc:
 		tpd_type_cap = 1;
     return 0; 
  }
-#if defined(CHRGING_NOTIFY_FT5336)
-
-void tp_write_reg0(void)
-{
-ft5x0x_write_reg(0x8B,0x00);
-}
-EXPORT_SYMBOL(tp_write_reg0);
-
-void tp_write_reg1(void)
-{
-ft5x0x_write_reg(0x8B,0x01);
-}
-EXPORT_SYMBOL(tp_write_reg1);
+#if 0//defined(CHRGING_NOTIFY_FT5336)
 
 void tp_read_reg8B(void)
 {
@@ -2191,6 +2224,10 @@ EXPORT_SYMBOL(tp_read_reg8B);
 	{
 		TPD_DMESG("resume I2C transfer error, line: %d\n", __LINE__);
 	}
+	
+#if defined(TP_CHECK_CHARGER)
+	schedule_delayed_work(&check_charger_work, msecs_to_jiffies(CHECK_CHARGER_WORK_DELAY_MS));
+#endif	
 	#if defined(CHRGING_NOTIFY_FT5336)
 	if(check_charger_exist()==KAL_TRUE)
 	{
@@ -2234,6 +2271,9 @@ EXPORT_SYMBOL(tp_read_reg8B);
 	ft5x0x_write_reg(0xd2, 0x1f);
 #endif
         return;
+#endif
+#if defined(TP_CHECK_CHARGER)
+	cancel_delayed_work(&check_charger_work);
 #endif
 
 	 mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
@@ -2296,7 +2336,7 @@ static ssize_t show_chipinfo(struct device *dev,struct device_attribute *attr, c
 
 }
 
-static DEVICE_ATTR(chipinfo, 0444, show_chipinfo, NULL);
+static DEVICE_ATTR(chipinfo, 0664, show_chipinfo, NULL);	//Modify by EminHuang 20120613   0444 -> 0664 [CTS Test]				android.permission.cts.FileSystemPermissionTest#testAllFilesInSysAreNotWritable FAIL
 
 
 #ifdef FTS_GESTRUE
@@ -2320,7 +2360,7 @@ static ssize_t store_control_double_tap(struct device *dev,struct device_attribu
 }
 
 
-static DEVICE_ATTR(control_double_tap, 0666, show_control_double_tap, store_control_double_tap);
+static DEVICE_ATTR(control_double_tap, 0664, show_control_double_tap, store_control_double_tap);
 #endif
 
 static const struct device_attribute * const ctp_attributes[] = {

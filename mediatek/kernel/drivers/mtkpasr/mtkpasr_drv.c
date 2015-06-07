@@ -896,6 +896,34 @@ void try_to_release_mtkpasr_page(int request_order)
 	}
 }
 
+#define MTKPASR_SHRINK_ORDER	2
+/* Shrinker callback */
+static int shrink_mtkpasr_memory(struct shrinker *shrink, struct shrink_control *sc)
+{
+#ifdef CONFIG_HIGHMEM	
+	/* No shrink if no __GFP_HIGHMEM */
+	if ((sc->gfp_mask & __GFP_HIGHMEM) == 0) {
+		return 0;
+	}
+#endif
+	/* The core of shrinker */
+	try_to_release_mtkpasr_page(MTKPASR_SHRINK_ORDER);
+	
+	/* No need to shrink it again! */
+	return 0;
+}
+
+static struct shrinker mtkpasr_shrinker = {
+	.shrink = shrink_mtkpasr_memory,
+	.seeks = DEFAULT_SEEKS,
+};
+
+/* Register shrinker callback */
+void mtkpasr_register_shrinker(void)
+{
+	register_shrinker(&mtkpasr_shrinker);
+}
+
 /* Shrinking mtkpasr_banks[bank]'s mafl totally */
 static void shrink_mafl_all(int bank)
 {
@@ -2148,6 +2176,10 @@ static int __init mtkpasr_init(void)
 
 	/* Indicate migration end */
 	mtkpasr_migration_end = NODE_DATA(0)->node_start_pfn + pages_per_bank;
+
+#if defined(CONFIG_MTKPASR_MAFL)
+	mtkpasr_register_shrinker();
+#endif
 
 	mtkpasr_info("num_banks[%d] num_ranks[%d] mtkpasr_start_pfn[%ld] mtkpasr_end_pfn[%ld] mtkpasr_total_pfns[%ld] banks_per_rank[%d]\n",
 			num_banks,num_ranks,mtkpasr_start_pfn,mtkpasr_end_pfn,mtkpasr_total_pfns,banks_per_rank);

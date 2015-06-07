@@ -471,6 +471,7 @@ struct input_keymap_entry {
 #define KEY_RFKILL		247	/* Key that controls all radios */
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
+#define KEY_APP_SWITCH 252
 
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
@@ -680,6 +681,7 @@ struct input_keymap_entry {
 #define KEY_BRL_DOT8		0x1f8
 #define KEY_BRL_DOT9		0x1f9
 #define KEY_BRL_DOT10		0x1fa
+
 
 #define KEY_NUMERIC_0		0x200	/* used by phones, remote controls, */
 #define KEY_NUMERIC_1		0x201	/* and other keypads */

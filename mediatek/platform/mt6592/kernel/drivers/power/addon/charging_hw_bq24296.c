@@ -51,7 +51,7 @@
  // ============================================================ //
  //global variable
  // ============================================================ //
-#if 1
+
 #include <cust_gpio_usage.h>
 int gpio_number   = GPIO_SWCHARGER_EN_PIN; 
 int gpio_off_mode = GPIO_SWCHARGER_EN_PIN_M_GPIO;
@@ -60,11 +60,7 @@ int gpio_on_mode  = GPIO_SWCHARGER_EN_PIN_M_GPIO;
 int gpio_psel_number   = GPIO_CHR_PSEL_PIN; 
 int gpio_psel_adapter_mode = GPIO_CHR_PSEL_PIN_M_GPIO;
 int gpio_psel_usb_mode  = GPIO_CHR_PSEL_PIN_M_GPIO;
-#else
-int gpio_number   = (19 | 0x80000000); 
-int gpio_off_mode = 0;
-int gpio_on_mode  = 0;
-#endif
+
 int gpio_off_dir  = GPIO_DIR_OUT;
 int gpio_off_out  = GPIO_OUT_ONE;
 int gpio_on_dir   = GPIO_DIR_OUT;
@@ -107,6 +103,47 @@ const kal_uint32 CS_VTH[]=
  {
 	 CHARGE_CURRENT_100_00_MA,	 CHARGE_CURRENT_500_00_MA,	 CHARGE_CURRENT_800_00_MA, CHARGE_CURRENT_MAX
  }; 
+
+const kal_uint32 BQ24296_SET_VOLTAGE[]=
+{
+	BATTERY_VOLT_03_500000_V,   BATTERY_VOLT_03_520000_V,	BATTERY_VOLT_03_540000_V,   BATTERY_VOLT_03_560000_V,
+	BATTERY_VOLT_03_580000_V,   BATTERY_VOLT_03_600000_V,	BATTERY_VOLT_03_620000_V,   BATTERY_VOLT_03_640000_V,
+	BATTERY_VOLT_03_660000_V,	BATTERY_VOLT_03_680000_V,	BATTERY_VOLT_03_700000_V,	BATTERY_VOLT_03_720000_V,
+	BATTERY_VOLT_03_740000_V,	BATTERY_VOLT_03_760000_V,	BATTERY_VOLT_03_780000_V,	BATTERY_VOLT_03_800000_V,
+	BATTERY_VOLT_03_820000_V,	BATTERY_VOLT_03_840000_V,	BATTERY_VOLT_03_860000_V,	BATTERY_VOLT_03_880000_V,
+	BATTERY_VOLT_03_900000_V,	BATTERY_VOLT_03_920000_V,	BATTERY_VOLT_03_940000_V,	BATTERY_VOLT_03_960000_V,
+	BATTERY_VOLT_03_980000_V,	BATTERY_VOLT_04_000000_V,	BATTERY_VOLT_04_020000_V,	BATTERY_VOLT_04_040000_V,
+	BATTERY_VOLT_04_060000_V,	BATTERY_VOLT_04_080000_V,	BATTERY_VOLT_04_100000_V,	BATTERY_VOLT_04_120000_V,
+	BATTERY_VOLT_04_140000_V,   BATTERY_VOLT_04_160000_V,	BATTERY_VOLT_04_180000_V,   BATTERY_VOLT_04_200000_V,
+	BATTERY_VOLT_04_220000_V,   BATTERY_VOLT_04_240000_V,	BATTERY_VOLT_04_260000_V,   BATTERY_VOLT_04_280000_V,
+	BATTERY_VOLT_04_300000_V,   BATTERY_VOLT_04_320000_V,	BATTERY_VOLT_04_340000_V,   BATTERY_VOLT_04_360000_V,	
+	BATTERY_VOLT_04_380000_V,   BATTERY_VOLT_04_400000_V	
+};
+
+ const kal_uint32 BQ24296_SET_CURRENT[]=
+{
+	CHARGE_CURRENT_500_00_MA,   CHARGE_CURRENT_550_00_MA,	CHARGE_CURRENT_600_00_MA, CHARGE_CURRENT_650_00_MA,
+	CHARGE_CURRENT_700_00_MA,   CHARGE_CURRENT_750_00_MA,	CHARGE_CURRENT_800_00_MA, CHARGE_CURRENT_850_00_MA,
+	CHARGE_CURRENT_900_00_MA,   CHARGE_CURRENT_950_00_MA,	CHARGE_CURRENT_1000_00_MA, CHARGE_CURRENT_1050_00_MA,
+	CHARGE_CURRENT_1100_00_MA,   CHARGE_CURRENT_1150_00_MA,	CHARGE_CURRENT_1200_00_MA, CHARGE_CURRENT_1250_00_MA,
+	CHARGE_CURRENT_1300_00_MA,   CHARGE_CURRENT_1350_00_MA,	CHARGE_CURRENT_1400_00_MA, CHARGE_CURRENT_1450_00_MA,
+	CHARGE_CURRENT_1500_00_MA,   CHARGE_CURRENT_1550_00_MA,	CHARGE_CURRENT_1600_00_MA, CHARGE_CURRENT_1650_00_MA,
+	CHARGE_CURRENT_1700_00_MA,   CHARGE_CURRENT_1750_00_MA,	CHARGE_CURRENT_1800_00_MA, CHARGE_CURRENT_1850_00_MA,
+	CHARGE_CURRENT_1900_00_MA,   CHARGE_CURRENT_1950_00_MA,	CHARGE_CURRENT_2000_00_MA, CHARGE_CURRENT_2050_00_MA,
+      CHARGE_CURRENT_2100_00_MA,   CHARGE_CURRENT_2150_00_MA,	CHARGE_CURRENT_2200_00_MA, CHARGE_CURRENT_2250_00_MA,
+	CHARGE_CURRENT_2300_00_MA,   CHARGE_CURRENT_2350_00_MA,	CHARGE_CURRENT_2400_00_MA, CHARGE_CURRENT_2450_00_MA,
+	CHARGE_CURRENT_2500_00_MA,   CHARGE_CURRENT_2550_00_MA,	CHARGE_CURRENT_2600_00_MA, CHARGE_CURRENT_2650_00_MA,
+	CHARGE_CURRENT_2700_00_MA,   CHARGE_CURRENT_2750_00_MA,	CHARGE_CURRENT_2800_00_MA, CHARGE_CURRENT_2850_00_MA,
+	CHARGE_CURRENT_2900_00_MA,   CHARGE_CURRENT_2950_00_MA,	CHARGE_CURRENT_3000_00_MA
+ };
+
+
+ const kal_uint32 BQ24296_SET_INPUT_CURRENT[]=
+ {
+	 CHARGE_CURRENT_100_00_MA,	 CHARGE_CURRENT_150_00_MA,	 CHARGE_CURRENT_500_00_MA, CHARGE_CURRENT_900_00_MA,
+        CHARGE_CURRENT_1000_00_MA, CHARGE_CURRENT_1500_00_MA,CHARGE_CURRENT_2000_00_MA,CHARGE_CURRENT_3000_00_MA 	 
+ }; 
+
 
  const kal_uint32 VCDT_HV_VTH[]=
  {
@@ -169,41 +206,63 @@ const kal_uint32 CS_VTH[]=
 
  static kal_uint32 bmt_find_closest_level(const kal_uint32 *pList,kal_uint32 number,kal_uint32 level)
  {
+    /*this function is to find the closest value in the array.    modified by kolery 2014.08.06*/
+    
 	 kal_uint32 i;
 	 kal_uint32 max_value_in_last_element;
  
 	 if(pList[0] < pList[1])
-		 max_value_in_last_element = KAL_TRUE;
+		 max_value_in_last_element = KAL_TRUE; //array is in ascending order 
 	 else
-		 max_value_in_last_element = KAL_FALSE;
+		 max_value_in_last_element = KAL_FALSE; //array is in descending order 
  
 	 if(max_value_in_last_element == KAL_TRUE)
-	 {
-		 for(i = (number-1); i != 0; i--)	 //max value in the last element
-		 {
-			 if(pList[i] <= level)
+	 {//max value in the last element
+             if(level > pList[number-1])
 			 {
+				 return pList[number-1] ;
+			 }
+             
+		 for(i = (number-1); i >=0; i--)	 
+		 {
+			 if((level <= pList[i]) && (level >= pList[i -1]))
+			 {
+                          if( (pList[i] - level) <= (level - pList[ i -1]))
 				 return pList[i];
+                          else
+                          return pList[i -1];
 			 }	  
 		 }
 
- 		 battery_xlog_printk(BAT_LOG_CRTI, "Can't find closest level, small value first \r\n");
-		 return pList[0];
-		 //return CHARGE_CURRENT_0_00_MA;
+              if(level < pList[0])
+			 {
+				 return pList[0] ;
+			 }
+	
 	 }
 	 else
-	 {
-		 for(i = 0; i< number; i++)  // max value in the first element
-		 {
-			 if(pList[i] <= level)
+	 {//max value in the first element
+             if(level > pList[0])
 			 {
+				 return pList[0] ;
+			 }
+             
+		 for(i = 0; i <= number-1; i++)	 
+		 {
+			 if((level <= pList[i]) && (level >= pList[i + 1]))
+			 {
+                          if( (pList[i] - level) <= (level - pList[ i +1]))
 				 return pList[i];
+                          else
+                          return pList[i +1];
 			 }	  
 		 }
 
-		 battery_xlog_printk(BAT_LOG_CRTI, "Can't find closest level, large value first \r\n"); 	 
-		 return pList[number -1];
-  		 //return CHARGE_CURRENT_0_00_MA;
+              if(level < pList[number - 1])
+			 {
+				 return pList[number - 1] ;
+			 }
+	
 	 }
  }
 
@@ -490,55 +549,51 @@ static void hw_bc11_dump_register(void)
  {
  	kal_uint32 status = STATUS_OK;
 	static bool charging_init_flag = KAL_FALSE;
-      //  printf("bq24296 charging_hw_init");
-	battery_xlog_printk(BAT_LOG_FULL, "bq24296 charging_hw_init \r\n");
-	  	mt_set_gpio_mode(gpio_number,gpio_off_mode);  
-	mt_set_gpio_dir(gpio_number,gpio_off_dir);
-	mt_set_gpio_out(gpio_number,gpio_off_out);
 
-    printk("[bq24296]  charging_hw_init ");
+	
 
-	battery_xlog_printk(BAT_LOG_FULL, "gpio_number=0x%x,gpio_on_mode=%d,gpio_off_mode=%d\n", gpio_number, 		     gpio_on_mode, gpio_off_mode);
-
+    printk("[bq24296]  charging_hw_init\n");
+	
+    //upmu_set_rg_bc11_bb_ctrl(1);    //BC11_BB_CTRL   
+    //upmu_set_rg_bc11_rst(1);        //BC11_RST
+	
 	upmu_set_rg_usbdl_set(0);       //force leave USBDL mode
 	upmu_set_rg_usbdl_rst(1);		//force leave USBDL mode
 
+       mt_set_gpio_mode(gpio_number,gpio_on_mode);  
+	mt_set_gpio_dir(gpio_number,gpio_on_dir);
+	mt_set_gpio_out(gpio_number,gpio_on_out);
 		
 	 bq24296_set_en_hiz(0x00);
 
-        bq24296_set_chg_config(0x01);   //CE enable
-       
+	if(STANDARD_CHARGER == bq24296_charging_type)
+   	{//Adapter Charging
+    	bq24296_set_iinlim(0x6); //IN current limit at 2A    
+    	bq24296_set_ichg(0x18);  //Fast Charging Current Limit at 2A
+	}
+	else if(STANDARD_HOST == bq24296_charging_type)
+   	{//USB Charging
+    	bq24296_set_iinlim(0x2); //IN current limit at 500mA
+    	bq24296_set_ichg(0x0);  //Fast Charging Current Limit at 500mA
+	}
 
-	/*
-	 bq24296_set_en_hiz(0x00);
-	bq24296_set_vindpm(0x06); //Input Vol Limit V4.36 
-        bq24296_set_iinlim (0x06);//Input Current Limit 1A
-                bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
-
-         bq24296_set_reg_rst(0x00);  //keep current REG setting
-	bq24296_set_wdt_rst(0x01);  //Reset watch dog
-        bq24296_set_chg_config(0x01);   //CE enable
-	bq24296_set_sys_min(0x05);  //min Vol 3.5V
-	bq24296_set_iprechg(0x01); //preCharge Current limin 512mA
-        bq24296_set_iterm(1);      //Termination Current limin 128mA
-        #if defined(HIGH_BATTERY_VOLTAGE_SUPPORT)
-	bq24296_set_vreg(0x32);//modify by lifeng for zhangshouchuang request // ISAFE = 1250mA, VSAFE = 4.34V
-	#else
-	bq24296_set_vreg(0x2C);
-	#endif
-	
-	bq24296_set_batlowv(0x01);  //BATLOWV 3V
-	bq24296_set_vrechg(0x00);    //VreCHG 0.1V
-	bq24296_set_en_term(0x00);   //EN Termination
-	bq24296_set_term_stat(0x01);//Watch dog time 40S
-	bq24296_set_chg_timer(0x01); //Fast Charge Timer 8h
-	bq24296_set_DPDM_en(0x01);
-	bq24296_set_en_timer(0x01); // Enable Sofety Timer
-	bq24296_set_int_mask(0x00);   //Disable fault INT
-
-*/
-	       
- 	return status;
+        bq24296_set_vindpm(0x8); //VIN DPM check 4.52V
+        bq24296_set_reg_rst(0x0);
+        bq24296_set_wdt_rst(0x1); //kick watchdog	
+        bq24296_set_sys_min(0x5); //Minimum system voltage 3.5V	
+        bq24296_set_iprechg(0x3); //preCharge Current limit 512mA for bq24296 and 384mA for bq24296M
+        bq24296_set_iterm(0x01); //Termination Current limit 256mA
+        bq24296_set_BHot(0x2);//boost mode thermal protection 65 degrees
+        bq24296_set_vreg(0x35);//Charge Voltage Limit 4.35V  
+        bq24296_set_batlowv(0x1); //BATLOWV 3.0V
+        bq24296_set_vrechg(0x0); //VRECHG 0.1V 
+        bq24296_set_en_term(0x1); //Enable termination
+        bq24296_set_watchdog(0x1); //WDT 40s
+        bq24296_set_en_timer(0x1); //Enable charge timer
+        bq24296_set_chg_timer(0x2);//Fast Chare Timer Setting 12hrs
+        bq24296_set_int_mask(0x0); //Disable fault interrupt
+    
+	return status;
  }
 
 
@@ -556,55 +611,25 @@ static void hw_bc11_dump_register(void)
  {
  	kal_uint32 status = STATUS_OK;
 	kal_uint32 enable = *(kal_uint32*)(data);
-	
-	
-    printk("[bq24296]  charging_enable ");
-	printk("gpio_number=0x%x,gpio_on_mode=%d,gpio_off_mode=%d\n", gpio_number, 		     gpio_on_mode, gpio_off_mode);
-
-	if(KAL_TRUE == enable)
-	{
 		
+	if(KAL_TRUE == enable)
+	{		
 	 	bq24296_set_en_hiz(0x00);
 
         	bq24296_set_chg_config(0x01);   //charging enable
 
-		printk("[bq24296]  charging_enable111111111111111111 ");
-
-		if(STANDARD_CHARGER == bq24296_charging_type)
-       	{//Adapter Charging
-        	bq24296_set_iinlim(0x6); //IN current limit at 2A    
-        	bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
-		}
-		else if(STANDARD_HOST == bq24296_charging_type)
-       	{//USB Charging
-        	bq24296_set_iinlim(0x2); //IN current limit at 500mA
-        	bq24296_set_ichg(0x0);  //Fast Charging Current Limit at 500mA
-		}
-	
-	 	bq24296_set_BHot(0x3);//Disable boost mode thermal protection
-        	bq24296_set_vreg(0x35);//Charge Voltage Limit 4.35V
-        
-        	mt_set_gpio_mode(gpio_number,gpio_on_mode);  
-	 	mt_set_gpio_dir(gpio_number,gpio_on_dir);
-	 	mt_set_gpio_out(gpio_number,gpio_on_out);
-
-		bq24296_dump_register();
-
-		printk("gpio_number=0x%x,gpio_on_mode=%d,gpio_off_mode=%d\n", gpio_number, 		     gpio_on_mode, gpio_off_mode);
+		printk("[bq24296]  charging_enable TRUE");
 	}
-	else
+    
+	else if(KAL_FALSE == enable)
 	{
 		#if defined(CONFIG_USB_MTK_HDRC_HCD)
    			if(mt_usb_is_device())
 		#endif 			
 
-    		printk("[bq24296]  charging_enable22222222222222222222222222222 ");
-		mt_set_gpio_mode(gpio_number,gpio_off_mode);  
-		mt_set_gpio_dir(gpio_number,gpio_off_dir);
-		mt_set_gpio_out(gpio_number,gpio_off_out);
+        	bq24296_set_chg_config(0x00);   //charging disable
 
-		 bq24296_set_en_hiz(0x00);
-        	bq24296_set_chg_config(0x00);   //CE disable
+            printk("[bq24296]  charging_enable FALSE");
 	}
 		
 	return status;
@@ -614,11 +639,29 @@ static void hw_bc11_dump_register(void)
  static kal_uint32 charging_set_cv_voltage(void *data)
  {
  	kal_uint32 status = STATUS_OK;
-	kal_uint16 register_value;
-	
-	register_value = charging_parameter_to_value(VBAT_CV_VTH, GETARRAYNUM(VBAT_CV_VTH) ,*(kal_uint32 *)(data));
-	bq24296_set_vreg(register_value); 
+      kal_uint32 set_chr_voltage;
+	kal_uint32 set_voltage_register_value;
+	kal_uint32 array_size;
 
+	array_size = GETARRAYNUM(BQ24296_SET_VOLTAGE);
+	set_chr_voltage = bmt_find_closest_level(BQ24296_SET_VOLTAGE, array_size, *(kal_uint32 *)data);
+
+    printk("[bq24296]charging_set_cv_voltage, set_chr_voltage =%d\n", set_chr_voltage / 1000);
+
+     if(BATTERY_VOLT_03_500000_V == set_chr_voltage)
+     {//  3.504V
+        printk("[bq24296]charging_set_cv_voltage, 3.504V\n");
+        set_voltage_register_value = 0x00;
+     }
+     else
+     {//  3.504V ~ 4.4V        
+       set_voltage_register_value = (set_chr_voltage / 1000  - 3504) / 16; //0x00 ~ 0x38
+     }
+             
+     printk("[bq24296]charging_set_current, REG04[7:2]=0x%x\n", set_voltage_register_value);
+    
+     bq24296_set_vreg(set_voltage_register_value); 
+    
 	return status;
  } 	
 
@@ -642,62 +685,88 @@ static void hw_bc11_dump_register(void)
  static kal_uint32 charging_set_current(void *data)
  {
  	kal_uint32 status = STATUS_OK;
-	kal_uint32 set_chr_current;
+      kal_uint32 set_chr_current;
+	kal_uint32 set_current_register_value;
 	kal_uint32 array_size;
-	kal_uint32 register_value;
-	kal_uint32 current_value = *(kal_uint32 *)data;
 
-	       // bq24296_set_iinlim(0x6); //IN current limit at 2A
-        //bq24296_set_ac_current();
-        //(2000 - 500)/64 = 0x17;
-     //   bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
- bq24296_set_en_hiz(0x00);
+	array_size = GETARRAYNUM(BQ24296_SET_CURRENT);
+	set_chr_current = bmt_find_closest_level(BQ24296_SET_CURRENT, array_size, *(kal_uint32 *)data);
 
-        bq24296_set_chg_config(0x01);   //CE enable
-		
-		array_size = GETARRAYNUM(CS_VTH);
-		set_chr_current = bmt_find_closest_level(CS_VTH, array_size, current_value);
-		register_value = charging_parameter_to_value(CS_VTH, array_size ,set_chr_current);
-		upmu_set_rg_cs_vth(register_value);
+    printk("[bq24296]charging_set_current, set_chr_current=%d\n",set_chr_current / 100);
 
-	
+     if(CHARGE_CURRENT_500_00_MA == set_chr_current)
+     {//500mA  
+        printk("[bq24296]charging_set_current, 500mA\n");
+        set_current_register_value = 0x00;
+     }
+     else
+     {//500 ~ 3000mA        
+        if(set_chr_current > CHARGE_CURRENT_2000_00_MA)
+        {
+            #ifdef BULMA_PROJECT
+            set_chr_current = CHARGE_CURRENT_2000_00_MA;//500 ~ 2000mA  for bulma 
+            #endif
+        }
+             
+        set_current_register_value = (set_chr_current / 100  - 512) / 64; //0x00 ~ 0x26, for bulma : 0x00 ~ 0x23
+
+        printk("[bq24296]charging_set_current, REG02[7:2]=0x%x\n",set_current_register_value);
+     }
+
+	bq24296_set_ichg(set_current_register_value); 
+    
 	return status;
  } 	
- 
+  
 
+ 
  static kal_uint32 charging_set_input_current(void *data)
  {
  	kal_uint32 status = STATUS_OK;
-	kal_uint32 set_chr_current;
+	kal_uint32 set_chr_input_current;
+      kal_uint32 temp;
 	kal_uint32 array_size;
-	kal_uint32 register_value;
 
-    if(*(kal_uint32 *)data < CHARGE_CURRENT_500_00_MA)
-    {
-        register_value = 0x10;
-		
-        bq24296_set_iinlim(0x2); //IN current limit at 500mA
-        bq24296_set_ichg(0x0);  //Fast Charging Current Limit at 500mA	
-    }
-    else
-    {
-    	array_size = GETARRAYNUM(INPUT_CS_VTH);
-    	set_chr_current = bmt_find_closest_level(INPUT_CS_VTH, array_size, *(kal_uint32 *)data);
-    	register_value = charging_parameter_to_value(INPUT_CS_VTH, array_size ,set_chr_current);
-		
-	bq24296_set_iinlim(0x6); //IN current limit at 2A
-      bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
-    }
+    	array_size = GETARRAYNUM(BQ24296_SET_INPUT_CURRENT);
+    	set_chr_input_current = bmt_find_closest_level(BQ24296_SET_INPUT_CURRENT, array_size, *(kal_uint32 *)data);
 
-    return status;
+         if(set_chr_input_current < CHARGE_CURRENT_500_00_MA)
+        {//100  150  500
+            set_chr_input_current = CHARGE_CURRENT_500_00_MA;//min 500mA
+        }
+         
+        if(set_chr_input_current > CHARGE_CURRENT_2000_00_MA)
+        {
+            #ifdef BULMA_PROJECT
+            set_chr_input_current = CHARGE_CURRENT_2000_00_MA;//max 2000mA for bulma
+            #endif
+        }
+        
+      printk("[bq24296]charging_set_input_current, set_chr_input_current=%d mA\n",set_chr_input_current / 100);
+      for(temp = 0; temp < array_size; temp++)
+      {
+           if(BQ24296_SET_INPUT_CURRENT[temp] == set_chr_input_current)
+           {printk("[bq24296]charging_set_input_current, REG00[2:0]=0x%x\n",temp);
+            bq24296_set_iinlim(temp);  
+            break;
+           }
+      } 
+
+     return status;
  } 	
 
 
  static kal_uint32 charging_get_charging_status(void *data)
  {
  	kal_uint32 status = STATUS_OK;
+	kal_uint32 ret_val;
+
+	ret_val = bq24296_get_chrg_stat();
 	
-	status = bq24296_get_chrg_stat();
+	if(ret_val == 0x3) //Charge Termination Done
+		*(kal_uint32 *)data = KAL_TRUE;
+	else
+		*(kal_uint32 *)data = KAL_FALSE;
 	
 	return status;
  } 	
@@ -933,5 +1002,6 @@ static kal_uint32 charging_set_power_off(void *data)
  
 	 return status;
  }
+
 
 

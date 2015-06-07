@@ -25,7 +25,7 @@
  *  Type define
  ****************************************************************************/
 #define BATTERY_LOWVOL_THRESOLD             3450
-#ifdef USE_FOR_BULMA_HE
+#ifdef BULMA_PROJECT
 #define BATTERY_TEMP_THRESOLD               45
 #else
 #define BATTERY_TEMP_THRESOLD               50
@@ -182,102 +182,26 @@ void kick_charger_wdt(void)
 }
 
 kal_bool is_low_battery(kal_uint32 val)
-{
-    #ifdef MTK_BQ24196_SUPPORT
-    kal_uint32 bq24196_chrg_status;
-    
-    if(0 == val)
-        val = get_i_sense_volt(5);
-    #endif
-
-    #ifdef MTK_BQ24296_SUPPORT
-    kal_uint32 bq24296_chrg_status;
-    
-    if(0 == val)
-        val = get_i_sense_volt(5);
-    #endif
-    
+{    
     if (val < BATTERY_LOWVOL_THRESOLD)
     {
-        dprintf(INFO, "%s, TRUE\n", __FUNCTION__);
+        printf("%s, TRUE\n", __FUNCTION__);
         return KAL_TRUE;
     }
-    else
-    {
-        #ifdef MTK_BQ24196_SUPPORT
-        bq24196_chrg_status = bq24196_get_chrg_stat();
-        dprintf(INFO, "bq24196_chrg_status = %d\n", bq24196_chrg_status);
-    
-        if(bq24196_chrg_status == 0x1) //Pre-charge
-        {
-            dprintf(INFO, "%s, battery protect TRUE\n", __FUNCTION__);
-            return KAL_TRUE;
-        }  
-        #endif
-
-        #ifdef MTK_BQ24296_SUPPORT
-        bq24296_chrg_status = bq24296_get_chrg_stat();
-        dprintf(INFO, "bq24296_chrg_status = %d\n", bq24296_chrg_status);
-    
-        if(bq24296_chrg_status == 0x1) //Pre-charge
-        {
-            dprintf(INFO, "%s, battery protect TRUE\n", __FUNCTION__);
-            return KAL_TRUE;
-        }  
-        #endif
-    }
-    
-    dprintf(INFO, "%s, FALSE\n", __FUNCTION__);
+      
+    printf("%s, FALSE\n", __FUNCTION__);
     return KAL_FALSE;
 }
 
 
 kal_bool is_high_bat_tempature(kal_int32 val)
-{
-    #ifdef MTK_BQ24196_SUPPORT
-    kal_uint32 bq24196_chrg_status;
-    
-    if(0 == val)
-        val = get_tbat_volt(5);
-    #endif
-
-   #ifdef MTK_BQ24296_SUPPORT
-    kal_uint32 bq24296_chrg_status;
-    
-    if(0 == val)
-        val = get_tbat_volt(5);
-    #endif
-    
+{    
     if (val > BATTERY_TEMP_THRESOLD)
     {
         dprintf(INFO, "%s, TRUE\n", __FUNCTION__);
         return KAL_TRUE;
     }
-    else
-    {
-        #ifdef MTK_BQ24196_SUPPORT
-        bq24196_chrg_status = bq24196_get_chrg_stat();
-        dprintf(INFO, "bq24196_chrg_status = %d\n", bq24196_chrg_status);
-    
-        if(bq24196_chrg_status == 0x1) //Pre-charge
-        {
-            dprintf(INFO, "%s, battery protect TRUE\n", __FUNCTION__);
-            return KAL_TRUE;
-        }  
-        #endif
-
-        #ifdef MTK_BQ24296_SUPPORT
-        bq24296_chrg_status = bq24296_get_chrg_stat();
-        dprintf(INFO, "bq24296_chrg_status = %d\n", bq24296_chrg_status);
-    
-        if(bq24296_chrg_status == 0x1) //Pre-charge
-        {
-            dprintf(INFO, "%s, battery protect TRUE\n", __FUNCTION__);
-            return KAL_TRUE;
-        }  
-        #endif
-    }
-    
+   
     dprintf(INFO, "%s, FALSE\n", __FUNCTION__);
     return KAL_FALSE;
 }
@@ -319,29 +243,28 @@ void mt65xx_bat_init(void)
 		kal_int32 bat_vol;
 		
 		kal_int32 bat_tempture;
-	        kal_int32 bat_temp;
+	      kal_int32 bat_temp;
+			
+		#ifdef MTK_IPO_POWERPATH_SUPPORT
+             CHARGER_TYPE CHR_Type_num = CHARGER_UNKNOWN;
+             #endif
 		// Low Battery Safety Booting
 		
-		bat_vol = get_bat_sense_volt(1);
+		   bat_vol = get_bat_sense_volt(1);
                 bat_tempture = get_tbat_volt(1);
                 bat_temp=BattVoltToTemp(bat_tempture);
                 printf("the bat_vol is %d,the bat_tempture is %d,the bat_temp is %d\n",bat_vol,bat_tempture,bat_temp);
 
-		#ifdef MTK_BQ24196_SUPPORT
+		#if defined(MTK_BQ24196_SUPPORT) ||defined(MTK_BQ24296_SUPPORT)
 		bat_vol = get_i_sense_volt(5);
-		#endif
+		#endif      
 
-	        #ifdef MTK_BQ24296_SUPPORT
-		bat_vol = get_i_sense_volt(5);
-		#endif
-                printf("mt65xx_bat_init] gooeddddddddddddddddddddddddddddddddddddddddddddddddddd\n");
-
-		dprintf(INFO, "[mt65xx_bat_init] check VBAT=%d mV with %d mV\n", bat_vol, BATTERY_LOWVOL_THRESOLD);
+		printf("[mt65xx_bat_init] check VBAT=%d mV with %d mV\n", bat_vol, BATTERY_LOWVOL_THRESOLD);
 		
 		pchr_turn_on_charging();
 
 		if(g_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT && (upmu_get_pwrkey_deb()==0) ) {
-				dprintf(INFO, "[mt65xx_bat_init] KPOC+PWRKEY => change boot mode\n");		
+				printf("[mt65xx_bat_init] KPOC+PWRKEY => change boot mode\n");		
 		
 				g_boot_reason_change = true;
 		}
@@ -353,32 +276,51 @@ void mt65xx_bat_init(void)
     {
         if(g_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT && upmu_is_chr_det() == KAL_TRUE)
         {
-            dprintf(INFO, "[%s] Kernel Low Battery Power Off Charging Mode\n", __func__);
+            printf("[%s] Kernel Low Battery Power Off Charging Mode\n", __func__);
             g_boot_mode = LOW_POWER_OFF_CHARGING_BOOT;
             return;
         }
+        #ifdef BULMA_PROJECT
+        else if((META_BOOT == g_boot_mode) ||(ADVMETA_BOOT == g_boot_mode))
+         {
+             printf("Enter Meta Mode emw\n\r");
+         }
+        #endif
         else
         {
-            dprintf(INFO, "[BATTERY] battery voltage(%dmV) <= CLV ! Can not Boot Linux Kernel !! \n\r",bat_vol);
+	#ifdef MTK_IPO_POWERPATH_SUPPORT
+        //boot linux kernel because of supporting powerpath and using standard AC charger
+        if(upmu_is_chr_det() == KAL_TRUE)
+       {
+        charging_get_charger_type(&CHR_Type_num);
+        if(STANDARD_CHARGER == CHR_Type_num)
+         {
+            return;
+         }
+        }
+       #endif
+		
+		
+            printf("[BATTERY] battery voltage(%dmV) <= CLV ! Can not Boot Linux Kernel !! \n\r",bat_vol);
 #ifndef NO_POWER_OFF
             mt6575_power_off();
 #endif			
             while(1)
             {
-                dprintf(INFO, "If you see the log, please check with RTC power off API\n\r");
+                printf("If you see the log, please check with RTC power off API\n\r");
             }
         }
     }
 
     if(is_high_bat_tempature(bat_temp))
     {	
-	            dprintf(INFO, "[BATTERY] battery tempature(%dmV) <= CLV ! Can not Boot Linux Kernel !! \n\r",bat_tempture);
+	            printf("[BATTERY] battery tempature(%dmV) <= CLV ! Can not Boot Linux Kernel !! \n\r",bat_tempture);
 	#ifndef NO_POWER_OFF
             mt6575_power_off();
 	#endif			
             while(1)
             {
-                dprintf(INFO, "If you see the log, please check with RTC power off API\n\r");
+                printf("If you see the log, please check with RTC power off API\n\r");
             }
         
     }

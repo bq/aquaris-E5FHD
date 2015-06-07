@@ -55,7 +55,10 @@
 #define CON1_WDT_RST_MASK     0x01
 #define CON1_WDT_RST_SHIFT    6
 
-#define CON1_CHG_CONFIG_MASK        0x03
+#define CON1_OTG_CONFIG_MASK        0x01
+#define CON1_OTG_CONFIG_SHIFT       5
+
+#define CON1_CHG_CONFIG_MASK        0x01
 #define CON1_CHG_CONFIG_SHIFT       4
 
 #define CON1_SYS_MIN_MASK        0x07
@@ -68,11 +71,17 @@
 #define CON2_ICHG_MASK    0x3F
 #define CON2_ICHG_SHIFT   2
 
+#define CON2_BCOLD_MASK    0x1
+#define CON2_BCOLD_SHIFT   1
+
+#define CON2_FORCE_20PCT_MASK    0x1
+#define CON2_FORCE_20PCT_SHIFT   0
+
 //CON3
 #define CON3_IPRECHG_MASK   0xF
 #define CON3_IPRECHG_SHIFT  4
 
-#define CON3_ITERM_MASK           0x0F
+#define CON3_ITERM_MASK           0x07
 #define CON3_ITERM_SHIFT          0
 
 //CON4
@@ -88,9 +97,6 @@
 //CON5
 #define CON5_EN_TERM_MASK      0x01
 #define CON5_EN_TERM_SHIFT     7
-
-#define CON5_TERM_STAT_MASK      0x01
-#define CON5_TERM_STAT_SHIFT     6
 
 #define CON5_WATCHDOG_MASK     0x03
 #define CON5_WATCHDOG_SHIFT    4
@@ -180,10 +186,13 @@ extern void bq24296_set_iinlim(kal_uint32 val);
 extern void bq24296_set_reg_rst(kal_uint32 val);
 extern void bq24296_set_wdt_rst(kal_uint32 val);
 extern void bq24296_set_chg_config(kal_uint32 val);
+extern void bq24296_set_otg_config(kal_uint32 val);
 extern void bq24296_set_sys_min(kal_uint32 val);
 extern void bq24296_set_boost_lim(kal_uint32 val);
 //CON2----------------------------------------------------
 extern void bq24296_set_ichg(kal_uint32 val);
+extern void bq24296_set_bcold(kal_uint32 val);
+extern void bq24296_set_force_20pct(kal_uint32 val);
 //CON3----------------------------------------------------
 extern void bq24296_set_iprechg(kal_uint32 val);
 extern void bq24296_set_iterm(kal_uint32 val);
@@ -193,7 +202,6 @@ extern void bq24296_set_batlowv(kal_uint32 val);
 extern void bq24296_set_vrechg(kal_uint32 val);
 //CON5----------------------------------------------------
 extern void bq24296_set_en_term(kal_uint32 val);
-extern void bq24296_set_term_stat(kal_uint32 val);
 extern void bq24296_set_watchdog(kal_uint32 val);
 extern void bq24296_set_en_timer(kal_uint32 val);
 extern void bq24296_set_chg_timer(kal_uint32 val);

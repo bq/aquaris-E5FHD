@@ -1492,8 +1492,12 @@ uint32 AudioDigitalControl::DlPolicyByDevice(uint32_t Device)
         return AudioDigitalType::DAI_BT;
     }
     else if(Device & AUDIO_DEVICE_OUT_AUX_DIGITAL)   //ckt lifeng add for MHL
-    {	
+    {
+ #if 1
 	return AudioDigitalType::I2S_OUT_2;  //test by lifeng
+ #else
+	return AudioDigitalType::I2S_OUT_DAC;  //modify by he
+ #endif
     }
     else if (/*Device & AUDIO_DEVICE_OUT_AUX_DIGITAL ||*/
              Device & AUDIO_DEVICE_OUT_ANLG_DOCK_HEADSET ||

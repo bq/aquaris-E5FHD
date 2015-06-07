@@ -35,7 +35,7 @@
 #define Himax_Gesture	//wangli_20140530
 
 //------------------------------------------// Virtual key
-#define TPD_BUTTON_HEIGH        (100)
+#define TPD_BUTTON_HEIGH        (90)//(100)
 #define TPD_BUTTON_WIDTH        (150)//(120) //wangli_20140625
 //#define TPD_KEY_COUNT  4 //wangli_20140430
 #define TPD_KEY_COUNT  3
@@ -43,7 +43,7 @@
 #define key_2           540,1961
 #define key_3           920,1961	//wangli_20140625
 //#define key_4           1640,1961 //wangli_20140430
-#define TPD_KEYS        {KEY_MENU,KEY_HOMEPAGE,KEY_BACK}
+#define TPD_KEYS        {KEY_APP_SWITCH,KEY_HOMEPAGE,KEY_BACK}
 #define TPD_KEYS_DIM    {{key_1,TPD_BUTTON_WIDTH,TPD_BUTTON_HEIGH},{key_2,TPD_BUTTON_WIDTH,TPD_BUTTON_HEIGH},{key_3,TPD_BUTTON_WIDTH,TPD_BUTTON_HEIGH}}
 
 

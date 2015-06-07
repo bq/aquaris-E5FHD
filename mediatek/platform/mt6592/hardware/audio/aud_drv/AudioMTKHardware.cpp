@@ -233,12 +233,19 @@ status_t AudioMTKHardware::HardwareInit(bool bEnableSpeech)
 	ALOGD("Turn on I2S_OUT_2 path for tfa9887, using for loading DSP profiles, only once.");
 	mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I05, AudioDigitalType::O00);
     	mAudioDigitalInstance->SetinputConnection(AudioDigitalType::Connection, AudioDigitalType::I06, AudioDigitalType::O01);
+#if 1
+	mAudioDigitalInstance->SetMemIfEnable(AudioDigitalType::I2S_OUT_DAC, true);//modify by he
+	mAudioDigitalInstance->SetI2SDacOutAttribute(44100);
+	mAudioDigitalInstance->SetI2SDacEnable(true);
+    //mAudioDigitalInstance->SetI2SAdcEnable(true);	
+	mAudioDigitalInstance->SetAfeEnable(true);
+#else
 	mAudioDigitalInstance->SetMemIfEnable(AudioDigitalType::I2S_OUT_2, true);
-
 	mAudioDigitalInstance->Set2ndI2SOutAttribute(44100);
 	mAudioDigitalInstance->Set2ndI2SOutEnable(true);
 	mAudioDigitalInstance->SetAfeEnable(true);
 
+#endif
 	//add for tfa9890 init
 	tfa9890_init(44100);
 	}
@@ -318,6 +325,10 @@ status_t AudioMTKHardware::HardwareInit(bool bEnableSpeech)
     if (ret != 0) { ALOGE("Failed to initialize pthread setParametersMutex"); }
     mAudioResourceManager->EnableAudioClock(AudioResourceManagerInterface::CLOCK_AUD_AFE, false);
     mAudioResourceManager->EnableAudioClock(AudioResourceManagerInterface::CLOCK_AUD_ANA, false);
+#if defined(USING_TFA9890_EXTAMP)
+	mAudioDigitalInstance->SetI2SDacEnable(false);
+    mAudioDigitalInstance->SetAfeEnable(false);
+#endif
     ALOGD("HardwareInit -");
     return NO_ERROR;
 }

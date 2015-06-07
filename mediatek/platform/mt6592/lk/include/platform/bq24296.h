@@ -56,7 +56,10 @@
 #define CON1_WDT_RST_MASK     0x01
 #define CON1_WDT_RST_SHIFT    6
 
-#define CON1_CHG_CONFIG_MASK        0x03
+#define CON1_OTG_CONFIG_MASK        0x01
+#define CON1_OTG_CONFIG_SHIFT       5
+
+#define CON1_CHG_CONFIG_MASK        0x01
 #define CON1_CHG_CONFIG_SHIFT       4
 
 #define CON1_SYS_MIN_MASK        0x07
@@ -73,7 +76,7 @@
 #define CON3_IPRECHG_MASK   0xF
 #define CON3_IPRECHG_SHIFT  4
 
-#define CON3_ITERM_MASK           0x0F
+#define CON3_ITERM_MASK           0x07
 #define CON3_ITERM_SHIFT          0
 
 //CON4
@@ -103,6 +106,9 @@
 #define CON5_CHG_TIMER_SHIFT          1
 
 //CON6
+#define CON6_BHOT_MASK     0x03
+#define CON6_BHOT_SHIFT    2
+
 #define CON6_TREG_MASK     0x03
 #define CON6_TREG_SHIFT    0
 
@@ -184,7 +190,6 @@ extern void bq24296_set_batlowv(kal_uint32 val);
 extern void bq24296_set_vrechg(kal_uint32 val);
 //CON5----------------------------------------------------
 extern void bq24296_set_en_term(kal_uint32 val);
-extern void bq24296_set_term_stat(kal_uint32 val);
 extern void bq24296_set_watchdog(kal_uint32 val);
 extern void bq24296_set_en_timer(kal_uint32 val);
 extern void bq24296_set_chg_timer(kal_uint32 val);

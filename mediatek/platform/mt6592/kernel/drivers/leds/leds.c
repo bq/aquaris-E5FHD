@@ -34,8 +34,9 @@
 //#include <linux/leds_sw.h>
 //#include <mach/mt_pmic_feature_api.h>
 //#include <mach/mt_boot.h>
-
-
+#ifdef CUSTOM_KERNEL_GYROSCOPE_BULMA
+#include "aw2013.h"
+#endif
 static DEFINE_MUTEX(leds_mutex);
 static DEFINE_MUTEX(leds_pmic_mutex);
 //#define ISINK_CHOP_CLK
@@ -886,7 +887,9 @@ int mt_mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 			level = LED_FULL;
 		else if (level < 0)
 			level = 0;
-	*/	
+	*/
+	unsigned int led;//wangli_20140722
+	
     LEDS_DEBUG("mt65xx_leds_set_cust: set brightness, name:%s, mode:%d, level:%d\n", 
 		cust->name, cust->mode, level);
 	switch (cust->mode) {
@@ -975,7 +978,27 @@ int mt_mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 			return ((cust_set_brightness)(cust->data))(level);
 			//LEDS_DEBUG("brightness_set_cust:backlight control by BLS_PWM done!!\n");
 			//#endif
-            
+        //add aw2013 for NLED test 
+#ifdef CUSTOM_KERNEL_GYROSCOPE_BULMA
+        case MT65XX_LED_MODE_CUST:
+            if(strcmp(cust->name,"red") == 0) {
+                led = 0;
+            }
+            else if(strcmp(cust->name,"green") == 0) {
+                led = 1;
+            }
+            else {
+                led = 2;
+            }
+            LEDS_DEBUG("==== mt_mt65xx_led_set_cust:led=%d ====\n",led);
+            if(level == 0) {
+                Suspend_led();
+            }
+            else {
+                led_flash_aw2013(led);
+            }
+            return 0;
+#endif            
 		case MT65XX_LED_MODE_NONE:
 		default:
 			break;

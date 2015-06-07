@@ -135,7 +135,9 @@ int m4u_invalid_wrapped_range(M4U_MODULE_ID_ENUM eModuleID,
     return 0;
 }
 
-
+int m4u_check_port_va_or_pa(M4U_PORT_STRUCT* pM4uPort) {
+   return m4u_do_check_port_va_or_pa(pM4uPort);
+}
 
 int m4u_config_port(M4U_PORT_STRUCT* pM4uPort) //native
 {

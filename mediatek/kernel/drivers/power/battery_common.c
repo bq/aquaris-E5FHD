@@ -269,12 +269,11 @@ extern void mt_usb_disconnect(void);
 #define mt_usb_disconnect() do { } while (0)
 #endif
 //extern int set_rtc_spare_fg_value(int val);
-#if defined(CHRGING_NOTIFY_FT5336)
+#if 0//defined(CHRGING_NOTIFY_FT5336)
 extern void tp_write_reg0(void);
 extern void tp_write_reg1(void);
 extern void tp_read_reg8B(void);
 #endif
-
 int read_tbat_value(void)
 {
     return BMT_status.temperature;
@@ -2069,8 +2068,6 @@ static void mt_battery_notify_VBatTemp_check(void)
 #if defined(BATTERY_NOTIFY_CASE_0002_VBATTEMP)
 	#ifdef TEMPERATURE_CONTROL_CHARGING
 		if(BMT_status.temperature >= MAX_CHARGE_NOTIFY_TEMPERATURE)
-	#elif defined USE_FOR_BULMA_HE
-	 	if(BMT_status.temperature >= MAX_CHARGE_NOTIFY_TEMPERATURE)
 	#else
 		if(BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
 	#endif
@@ -2092,12 +2089,6 @@ static void mt_battery_notify_VBatTemp_check(void)
         g_BatteryNotifyCode |= 0x0020;
         battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] bat_temp(%d) out of range(too low)\n", BMT_status.temperature);
     }
-    #elif defined USE_FOR_BULMA_HE
-        else if (BMT_status.temperature < MIN_CHARGE_NOTIFY_TEMPERATURE)
-    {
-        g_BatteryNotifyCode |= 0x0020;
-        battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] bat_temp(%d) out of range(too low)\n", BMT_status.temperature);
-    }	 
     #else
 	else if (BMT_status.temperature < MIN_CHARGE_TEMPERATURE)
     {
@@ -2205,10 +2196,12 @@ static void mt_battery_thermal_check(void)
         //ignore default rule
 #else    
         #ifdef TEMPERATURE_CONTROL_CHARGING
-		if(BMT_status.temperature >= MAX_CHARGE_POWEROFF_TEMPERATURE)
-       #elif defined USE_FOR_BULMA_HE
-		if(BMT_status.temperature >= MAX_CHARGE_POWEROFF_TEMPERATURE)
-	#else
+		#ifdef USE_FOR_BULMA_HE
+		 if(BMT_status.temperature >= MAX_CHARGE_POWEROFF_TEMPERATURE)
+		#else
+		 if(BMT_status.temperature >= MAX_CHARGE_POWEROFF_TEMPERATURE || BMT_status.temperature <= MIN_CHARGE_POWEROFF_TEMPERATURE)
+		#endif
+	    #else
 		if(BMT_status.temperature >= 60)
         #endif
         {
@@ -2437,7 +2430,7 @@ void do_chrdet_int_task(void)
             mt_battery_update_status();
         }
         wake_up_bat();
-#if defined(CHRGING_NOTIFY_FT5336)
+#if 0//defined(CHRGING_NOTIFY_FT5336)
 	if (BMT_status.charger_exist == KAL_TRUE)
 	{
 		tp_write_reg1();
@@ -2460,10 +2453,11 @@ void do_chrdet_int_task(void)
 #if defined(CHRGING_NOTIFY_FT5336)
 kal_bool check_charger_exist(void)
 {
-   if (BMT_status.charger_exist == KAL_TRUE)
-   {
-	return KAL_TRUE;
-   }
+   return BMT_status.charger_exist;
+  // if (BMT_status.charger_exist == KAL_TRUE)
+ //  {
+	//return KAL_TRUE;
+  // }
 }
 EXPORT_SYMBOL(check_charger_exist);
 #endif

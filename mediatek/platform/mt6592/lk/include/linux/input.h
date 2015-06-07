@@ -263,6 +263,8 @@
 #define KEY_DOCUMENTS 235
 
 #define KEY_UNKNOWN 240
+#define KEY_APP_SWITCH 252
+
 
 #define KEY_OPTION 0x165
 #define KEY_INFO 0x166
@@ -366,6 +368,8 @@
 #define KEY_BRL_DOT5 0x1f5
 #define KEY_BRL_DOT8 0x1f8
 #define KEY_BRL_DOT7 0x1f7
+
+
 
 #define KEY_MAX 0x1ff
 #define KEY_MIN_INTERESTING KEY_MUTE

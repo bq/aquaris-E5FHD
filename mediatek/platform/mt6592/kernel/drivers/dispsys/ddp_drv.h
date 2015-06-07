@@ -62,6 +62,14 @@ typedef enum
     DDP_NONE_FMT
 } DDP_OVL_FORMAT;
 #endif
+
+typedef struct DISP_EXEC_COMMAND_DEBUG_METADATA
+{
+    bool MDP_ROTO; 
+    bool MDP_ROTCO; 
+    bool MDP_ROTVO; 
+}DISP_EXEC_COMMAND_DEBUG_METADATA; 
+
 typedef struct DISP_EXEC_COMMAND
 {
     int taskID;
@@ -71,6 +79,8 @@ typedef struct DISP_EXEC_COMMAND
     uint32_t *pFrameBaseSW;
     uint32_t *pTileBaseSW;
     uint32_t blockSize;
+
+    DISP_EXEC_COMMAND_DEBUG_METADATA debugPortData; 
 } DISP_EXEC_COMMAND;
 
 typedef struct

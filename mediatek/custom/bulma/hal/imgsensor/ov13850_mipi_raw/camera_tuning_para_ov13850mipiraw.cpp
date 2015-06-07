@@ -101,7 +101,7 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             12,    // u4CapMaxFrameRate
             1024,    // u4Cap2PreRatio, 1024 base = 1x
             24,    // u4LensFno, Fno = 2.8
-            0    // u4FocusLength_100x
+            375    // u4FocusLength_100x
         },
         // rHistConfig
         {
@@ -124,8 +124,8 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             TRUE,    // bEnableCaptureThres
             TRUE,    // bEnableVideoThres
             TRUE,    // bEnableStrobeThres
-            54,    // u4AETarget
-            47,    // u4StrobeAETarget
+            50,    // u4AETarget
+            0,    // u4StrobeAETarget
             50,    // u4InitIndex
             4,    // u4BackLightWeight
             32,    // u4HistStretchWeight

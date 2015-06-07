@@ -257,13 +257,13 @@ status_t AudioFMController::ChangeDevice(const audio_devices_t new_device)
             usleep(430000); // -74.5/0.25 * 64 / 44100 = 430 ms
         }
 
-        if (pre_device == AUDIO_DEVICE_OUT_WIRED_HEADSET ||pre_device == AUDIO_DEVICE_OUT_WIRED_HEADPHONE)
+        /*if (pre_device == AUDIO_DEVICE_OUT_WIRED_HEADSET ||pre_device == AUDIO_DEVICE_OUT_WIRED_HEADPHONE)
         {
             //Add SPK
             mAudioFMResourceManager->setDlOutputDevice(new_device);
             mAudioFMResourceManager->AddSubSPKToOutputDevice();
         }
-        else
+        else*/
         {
             mAudioFMResourceManager->StopOutputDevice();
             mAudioFMResourceManager->setDlOutputDevice(new_device);
@@ -276,13 +276,13 @@ status_t AudioFMController::ChangeDevice(const audio_devices_t new_device)
     else if (pre_device == kAudioDeviceSpeakerAndHeadset || pre_device == kAudioDeviceSpeakerAndHeadphone)
     {
         ALOGD("%s(), leaving Warning Tone, only config analog part", __FUNCTION__);
-        if (new_device == AUDIO_DEVICE_OUT_WIRED_HEADSET ||new_device == AUDIO_DEVICE_OUT_WIRED_HEADPHONE)
+        /*if (new_device == AUDIO_DEVICE_OUT_WIRED_HEADSET ||new_device == AUDIO_DEVICE_OUT_WIRED_HEADPHONE)
         {
             //Sub SPK
             mAudioFMResourceManager->setDlOutputDevice(new_device);
             mAudioFMResourceManager->AddSubSPKToOutputDevice();
         }
-        else
+        else*/
         {
             mAudioFMResourceManager->StopOutputDevice();
             mAudioFMResourceManager->setDlOutputDevice(new_device);

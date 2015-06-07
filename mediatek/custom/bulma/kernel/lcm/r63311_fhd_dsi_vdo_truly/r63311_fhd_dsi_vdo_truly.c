@@ -176,11 +176,11 @@ void TC358768_DCS_write_1A_1P(unsigned char cmd, unsigned char para)
 static void init_lcm_registers(void)
 {
     unsigned int data_array[16];
+/** /
     data_array[0] = 0x00110500;
     dsi_set_cmdq(data_array, 1, 1);
-
     MDELAY(120);
-
+/**/
     data_array[0] = 0x00022902;
     data_array[1] = 0x000004B0;
     dsi_set_cmdq(&data_array, 2, 1);
@@ -253,11 +253,11 @@ static void init_lcm_registers(void)
     data_array[11] = 0x00000007;
     dsi_set_cmdq(&data_array, 12, 1);
 
-
+/*2.6* /
 //GAMMA setting start
     data_array[0] = 0x00192902;
-    data_array[1] = 0x230500c7;
-    data_array[2] = 0x41452b25;
+    data_array[1] = 0x1a1100c7;
+    data_array[2] = 0x414b3324;
     data_array[3] = 0x726c6657;
     data_array[4] = 0x1a110076;
     data_array[5] = 0x414b3324;
@@ -265,9 +265,9 @@ static void init_lcm_registers(void)
     data_array[7] = 0x00000076;
     dsi_set_cmdq(&data_array, 8, 1);
 
-   data_array[0] = 0x00192902;
-    data_array[1] = 0x230500c8;
-    data_array[2] = 0x41452b25;
+    data_array[0] = 0x00192902;
+    data_array[1] = 0x1a1100c8;
+    data_array[2] = 0x414b3324;
     data_array[3] = 0x726c6657;
     data_array[4] = 0x1a110076;
     data_array[5] = 0x414b3324;
@@ -275,9 +275,9 @@ static void init_lcm_registers(void)
     data_array[7] = 0x00000076;
     dsi_set_cmdq(&data_array, 8, 1);
 
-   data_array[0] = 0x00192902;
-    data_array[1] = 0x230500c9;//wl
-    data_array[2] = 0x41452b25;
+    data_array[0] = 0x00192902;
+    data_array[1] = 0x1a1100c9;
+    data_array[2] = 0x414b3324;
     data_array[3] = 0x726c6657;
     data_array[4] = 0x1a110076;
     data_array[5] = 0x414b3324;
@@ -285,7 +285,121 @@ static void init_lcm_registers(void)
     data_array[7] = 0x00000076;
     dsi_set_cmdq(&data_array, 8, 1);
 //GAMMA setting end
+/**/
+/*2.4*/
+//GAMMA setting start
+    data_array[0] = 0x00192902;
+    data_array[1] = 0x191000c7;
+    data_array[2] = 0x3E493122;
+    data_array[3] = 0x6E696253;
+    data_array[4] = 0x19100076;
+    data_array[5] = 0x3E493122;
+    data_array[6] = 0x6E696253;
+    data_array[7] = 0x00000076;
+    dsi_set_cmdq(&data_array, 8, 1);
 
+    data_array[0] = 0x00192902;
+    data_array[1] = 0x191000c8;
+    data_array[2] = 0x3E493122;
+    data_array[3] = 0x6E696253;
+    data_array[4] = 0x19100076;
+    data_array[5] = 0x3E493122;
+    data_array[6] = 0x6E696253;
+    data_array[7] = 0x00000076;
+    dsi_set_cmdq(&data_array, 8, 1);
+
+    data_array[0] = 0x00192902;
+    data_array[1] = 0x191000c9;
+    data_array[2] = 0x3E493122;
+    data_array[3] = 0x6E696253;
+    data_array[4] = 0x19100076;
+    data_array[5] = 0x3E493122;
+    data_array[6] = 0x6E696253;
+    data_array[7] = 0x00000076;
+    dsi_set_cmdq(&data_array, 8, 1);
+//GAMMA setting end
+/**/
+/*2.3* /
+//GAMMA setting start
+    data_array[1] = 0x180f00c7;
+    data_array[2] = 0x3d483021;
+    data_array[3] = 0x6c676051;
+    data_array[4] = 0x180f0076;
+    data_array[5] = 0x3d483021;
+    data_array[6] = 0x6c676051;
+    data_array[7] = 0x00000076;
+
+    data_array[1] = 0x180f00c8;
+    data_array[2] = 0x3d483021;
+    data_array[3] = 0x6c676051;
+    data_array[4] = 0x180f0076;
+    data_array[5] = 0x3d483021;
+    data_array[6] = 0x6c676051;
+    data_array[7] = 0x00000076;
+
+    data_array[1] = 0x180f00c9;
+    data_array[2] = 0x3d483021;
+    data_array[3] = 0x6c676051;
+    data_array[4] = 0x180f0076;
+    data_array[5] = 0x3d483021;
+    data_array[6] = 0x6c676051;
+    data_array[7] = 0x00000076;
+//GAMMA setting end
+/**/
+/*2.2* /
+//GAMMA setting start
+    data_array[1] = 0x170e00c7;
+    data_array[2] = 0x3c472f20;
+    data_array[3] = 0x6c67604F;
+    data_array[4] = 0x170e0076;
+    data_array[5] = 0x3c472f20;
+    data_array[6] = 0x6c67604F;
+    data_array[7] = 0x00000076;
+
+    data_array[1] = 0x170e00c8;
+    data_array[2] = 0x3c472f20;
+    data_array[3] = 0x6c67604F;
+    data_array[4] = 0x170e0076;
+    data_array[5] = 0x3c472f20;
+    data_array[6] = 0x6c67604F;
+    data_array[7] = 0x00000076;
+
+    data_array[1] = 0x170e00c9;
+    data_array[2] = 0x3c472f20;
+    data_array[3] = 0x6c67604F;
+    data_array[4] = 0x170e0076;
+    data_array[5] = 0x3c472f20;
+    data_array[6] = 0x6c67604F;
+    data_array[7] = 0x00000076;
+//GAMMA setting end
+/**/
+/*2.1* /
+//GAMMA setting start
+    data_array[1] = 0x160e00c7;
+    data_array[2] = 0x3b462e1f;
+    data_array[3] = 0x6b665F4e;
+    data_array[4] = 0x160e0076;
+    data_array[5] = 0x3b462e1f;
+    data_array[6] = 0x6b665F4e;
+    data_array[7] = 0x00000076;
+
+    data_array[1] = 0x160e00c8;
+    data_array[2] = 0x3b462e1f;
+    data_array[3] = 0x6b665F4e;
+    data_array[4] = 0x160e0076;
+    data_array[5] = 0x3b462e1f;
+    data_array[6] = 0x6b665F4e;
+    data_array[7] = 0x00000076;
+
+    data_array[1] = 0x160e00c9;
+    data_array[2] = 0x3b462e1f;
+    data_array[3] = 0x6b665F4e;
+    data_array[4] = 0x160e0076;
+    data_array[5] = 0x3b462e1f;
+    data_array[6] = 0x6b665F4e;
+    data_array[7] = 0x00000076;
+//GAMMA setting end
+/**/
     data_array[0] = 0x00232902;
     data_array[1] = 0x80a000ca;
     data_array[2] = 0x80808080;
@@ -407,8 +521,8 @@ static void init_lcm_registers(void)
     dsi_set_cmdq(data_array, 1, 1);
 
 //==========
-   // MDELAY(10);
-   MDELAY(120);
+    MDELAY(10);
+    //MDELAY(120);
 
 }
 // ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@
 #define TPD_HAVE_BUTTON
 #define TPD_BUTTON_HEIGH        (100)
 #define TPD_KEY_COUNT           3
-#define TPD_KEYS                { KEY_MENU, KEY_HOMEPAGE ,KEY_BACK}
+#define TPD_KEYS                { KEY_APP_SWITCH, KEY_HOMEPAGE ,KEY_BACK}
 #define TPD_KEYS_DIM            {{200,2100,150,100},{540,2100,150,100},{880,2100,150,100}}
 
 #endif /* TOUCHPANEL_H__ */

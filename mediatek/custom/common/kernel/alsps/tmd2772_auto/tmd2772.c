@@ -2071,6 +2071,7 @@ static long TMD2772_unlocked_ioctl(struct file *file, unsigned int cmd,
 	return err;    
 }
 /*----------------------------------------------------------------------------*/
+
 static ssize_t tmd2772_show_als(struct device_driver *ddri, char *buf)
 {
 	int res;
@@ -2751,6 +2752,29 @@ static void tmd2772_ps_calibrate(struct i2c_client *client)
 }
 
 //end
+//=======================================================================================================
+#ifdef VEGETAFHD
+long TMD2772_enable_ps_tp(int value)
+{
+    struct TMD2772_priv *obj = i2c_get_clientdata(TMD2772_i2c_client);
+    TMD2772_enable_ps(obj->client, value);
+}
+long TMD2772_read_ps_tp(u16 *value)
+{ 
+    TMD2772_read_ps(TMD2772_obj->client, value);
+
+    return 0;
+}
+int TMD2772_get_ps_value_tp(u16 value)
+{
+    int val;
+
+    val = TMD2772_get_ps_value(TMD2772_obj, value);
+
+    return val;
+}
+#endif
+//=========================================================================================================
 
 /*----------------------------------------------------------------------------*/
 static int TMD2772_i2c_detect(struct i2c_client *client, struct i2c_board_info *info) 
@@ -2962,6 +2986,12 @@ static void __exit TMD2772_exit(void)
 /*----------------------------------------------------------------------------*/
 module_init(TMD2772_init);
 module_exit(TMD2772_exit);
+/*----------------------------------------------------------------------------*/
+#ifdef VEGETAFHD
+EXPORT_SYMBOL(TMD2772_enable_ps_tp);
+EXPORT_SYMBOL(TMD2772_read_ps_tp);
+EXPORT_SYMBOL(TMD2772_get_ps_value_tp);
+#endif
 /*----------------------------------------------------------------------------*/
 MODULE_AUTHOR("Dexiang Liu");
 MODULE_DESCRIPTION("TMD2772 driver");

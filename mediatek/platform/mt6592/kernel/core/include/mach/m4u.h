@@ -111,7 +111,8 @@ int m4u_insert_seq_range(M4U_MODULE_ID_ENUM eModuleID,
 int m4u_invalid_seq_range(M4U_MODULE_ID_ENUM eModuleID,
                     unsigned int MVAStart,
                     unsigned int MVAEnd);
-                    
+
+int m4u_check_port_va_or_pa(M4U_PORT_STRUCT* pM4uPort);
 int m4u_config_port_rotator(M4U_PORT_STRUCT_ROTATOR *pM4uPort);
 
 int m4u_config_port(M4U_PORT_STRUCT* pM4uPort); //native

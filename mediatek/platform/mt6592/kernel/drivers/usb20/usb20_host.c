@@ -67,15 +67,15 @@ void mt_usb_set_vbus(struct musb *musb, int is_on)
         fan5405_set_otg_en(1);
     #elif defined(MTK_NCP1851_SUPPORT) || defined(MTK_BQ24196_SUPPORT)
         tbl_charger_otg_vbus((work_busy(&musb->id_pin_work.work)<< 8)| 1);
-    #else
+    #elif defined(MTK_BQ24296_SUPPORT)
+            #ifdef BULMA_PROJECT
 	      mt_set_gpio_mode(GPIO_OTG_DRVVBUS_PIN,GPIO_OTG_DRVVBUS_PIN_M_GPIO);
             mt_set_gpio_dir(GPIO_OTG_DRVVBUS_PIN,GPIO_DIR_OUT);
             mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN,GPIO_OUT_ONE);
-		#ifdef MTK_BQ24296_SUPPORT
-  		bq24296_set_chg_config(0x2); //make OTG pin High
+            #endif
+  		bq24296_set_otg_config(0x1); //OTG enable
   		bq24296_set_boost_lim(0x1);//OTG current 1.5A
-  		bq24296_set_boostv(0x7);//OTG voltage 5A
-  		#endif
+  		bq24296_set_boostv(0xC);//OTG voltage 5.31A
      #endif
     } 
 else 
@@ -86,14 +86,13 @@ else
 		fan5405_reg_config_interface(0x02,0x8e);
     #elif defined(MTK_NCP1851_SUPPORT) || defined(MTK_BQ24196_SUPPORT)
         tbl_charger_otg_vbus((work_busy(&musb->id_pin_work.work)<< 8)| 0);
-    #else
+    #elif defined(MTK_BQ24296_SUPPORT)
+             #ifdef BULMA_PROJECT
 		mt_set_gpio_mode(GPIO_OTG_DRVVBUS_PIN,GPIO_OTG_DRVVBUS_PIN_M_GPIO);
             mt_set_gpio_dir(GPIO_OTG_DRVVBUS_PIN,GPIO_DIR_OUT);
             mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN,GPIO_OUT_ZERO);
-		#ifdef MTK_BQ24296_SUPPORT
-  		bq24296_set_chg_config(0x1); //make OTG pin Low
-  		#endif
-
+            #endif
+  		bq24296_set_otg_config(0x0); //OTG disable
     #endif
     }
 	

@@ -55,7 +55,10 @@
 #define CON1_WDT_RST_MASK     0x01
 #define CON1_WDT_RST_SHIFT    6
 
-#define CON1_CHG_CONFIG_MASK        0x03
+#define CON1_OTG_CONFIG_MASK        0x01
+#define CON1_OTG_CONFIG_SHIFT       5
+
+#define CON1_CHG_CONFIG_MASK        0x01
 #define CON1_CHG_CONFIG_SHIFT       4
 
 #define CON1_SYS_MIN_MASK        0x07
@@ -72,7 +75,7 @@
 #define CON3_IPRECHG_MASK   0xF
 #define CON3_IPRECHG_SHIFT  4
 
-#define CON3_ITERM_MASK           0x0F
+#define CON3_ITERM_MASK           0x07
 #define CON3_ITERM_SHIFT          0
 
 //CON4

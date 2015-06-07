@@ -49,8 +49,8 @@
     80,  4325,   611,     0, 53256|BT_COMP_FILTER,     0,     0,BT_SYNC_DELAY
 
 #define DEFAULT_SPEECH_LOUDSPK_MODE_PARA \
-    96,   224,  5256,    31, 57351, 24607,   400,     0,\
-    84,  4325,   611,     0, 20488,     0,     0,     0
+    32864,   224,  511,    31, 57351, 24607,   400,     0,\
+    84,  4325,   611,     0, 20552,     0,     0,     0
 
 #define DEFAULT_SPEECH_CARKIT_MODE_PARA \
     96,   224,  5256,    31, 57351, 24607,   400,   132,\
@@ -69,7 +69,7 @@
      0,     0,     0,     0,     0,     0,     0,     0
 
 #define DEFAULT_SPEECH_COMMON_PARA \
-     0, 55997, 31000, 10752, 32769,     0,     0,     0, \
+     0, 55997, 31000, 32767, 32769,     0,     0,     0, \
      0,     0,     0,     0
 
 #define DEFAULT_SPEECH_VOL_PARA \

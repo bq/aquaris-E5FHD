@@ -30,7 +30,7 @@ typedef struct{
 }VBAT_TO_PERCENT;
 
 /* Battery Temperature Protection */
-#define MAX_CHARGE_TEMPERATURE  50
+#define MAX_CHARGE_TEMPERATURE  45
 #define MIN_CHARGE_TEMPERATURE  0
 #define ERR_CHARGE_TEMPERATURE  0xFF
 

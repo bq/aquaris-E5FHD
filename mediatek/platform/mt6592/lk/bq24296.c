@@ -6,16 +6,12 @@
 #include <printf.h>
 #include <platform/mt_gpio.h>
 #include <target/cust_battery.h>
-#if 1
+
 #include <cust_gpio_usage.h>
 int gpio_number   = GPIO_SWCHARGER_EN_PIN; 
 int gpio_off_mode = GPIO_SWCHARGER_EN_PIN_M_GPIO;
 int gpio_on_mode  = GPIO_SWCHARGER_EN_PIN_M_GPIO;
-#else
-int gpio_number   = (19 | 0x80000000); 
-int gpio_off_mode = 0;
-int gpio_on_mode  = 0;
-#endif
+
 int gpio_off_dir  = GPIO_DIR_OUT;
 int gpio_off_out  = GPIO_OUT_ONE;
 int gpio_on_dir   = GPIO_DIR_OUT;
@@ -49,7 +45,7 @@ kal_uint8 bq24296_reg[bq24296_REG_NUM] = {0};
   *********************************************************/
 #if 0
 #ifndef BQ24296_BUSNUM
-#define BQ24296_BUSNUM I2C2
+#define BQ24296_BUSNUM I2C0
 #endif  
 
 U32 bq24296_i2c_read (U8 chip, U8 *cmdBuffer, int cmdBufferLen, U8 *dataBuffer, int dataBufferLen)
@@ -336,6 +332,17 @@ void bq24296_set_wdt_rst(kal_uint32 val)
         dprintf(CRITICAL, "%d\n", ret);		
 }
 
+void bq24296_set_otg_config(kal_uint32 val)
+{
+    kal_uint32 ret=0;    
+
+    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON1), 
+                                    (kal_uint8)(val),
+                                    (kal_uint8)(CON1_OTG_CONFIG_MASK),
+                                    (kal_uint8)(CON1_OTG_CONFIG_SHIFT)
+                                    );
+}
+
 void bq24296_set_chg_config(kal_uint32 val)
 {
     kal_uint32 ret=0;    
@@ -474,19 +481,6 @@ void bq24296_set_en_term(kal_uint32 val)
         dprintf(CRITICAL, "%d\n", ret);		
 }
 
-void bq24296_set_term_stat(kal_uint32 val)
-{
-    kal_uint32 ret=0;    
-
-    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON5), 
-                                    (kal_uint8)(val),
-                                    (kal_uint8)(CON5_TERM_STAT_MASK),
-                                    (kal_uint8)(CON5_TERM_STAT_SHIFT)
-                                    );
-    if(g_bq24296_log_en>1)        
-        dprintf(CRITICAL, "%d\n", ret);		
-}
-
 void bq24296_set_watchdog(kal_uint32 val)
 {
     kal_uint32 ret=0;    
@@ -527,6 +521,18 @@ void bq24296_set_chg_timer(kal_uint32 val)
 }
 
 //CON6----------------------------------------------------
+
+void bq24296_set_BHot(kal_uint32 val)
+{
+    kal_uint32 ret=0;    
+
+    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON6), 
+                                    (kal_uint8)(val),
+                                    (kal_uint8)(CON6_BHOT_MASK),
+                                    (kal_uint8)(CON6_BHOT_SHIFT)
+                                    );
+	
+}
 
 void bq24296_set_treg(kal_uint32 val)
 {
@@ -683,52 +689,39 @@ void bq24296_hw_init(void)
 {
 
    dprintf(INFO, "bq24296lk init----------------------------------------\n");	
-    upmu_set_rg_bc11_bb_ctrl(1);    //BC11_BB_CTRL    
-    upmu_set_rg_bc11_rst(1);        //BC11_RST
-
-
-    //TODO: pull PSEL low
-    //TODO: pull CE low
-    		bq24296_set_chg_config(1);
-	 bq24296_set_en_hiz(0x00);
-
-        bq24296_set_chg_config(0x01);   //CE enable
-        /*
-    bq24296_set_en_hiz(0x0);
-    bq24296_set_vindpm(0xA); //VIN DPM check 4.68V
-    bq24296_set_reg_rst(0x0);
-	bq24296_set_wdt_rst(0x1); //Kick watchdog
-//    if(upmu_get_cid() == 0x1020)
-    if(0)
-	    bq24296_set_sys_min(0x0); //Minimum system voltage 3.0V (MT6320 E1 workaround, disable powerpath)
-    else	    
-        bq24296_set_sys_min(0x5); //Minimum system voltage 3.5V		
-	bq24296_set_iprechg(0x1); //Precharge current 512mA
-	bq24296_set_iterm(0x1); //Termination current 128mA
-
-#if defined(MTK_JEITA_STANDARD_SUPPORT)        
-    if(g_temp_status == TEMP_NEG_10_TO_POS_0)
-    {    
-		bq24296_set_vreg(0x1F); //VREG 4.0V
-    }
-    else
-    {
-        if(g_temp_status == TEMP_POS_10_TO_POS_45)
-		    bq24296_set_vreg(0x2C); //VREG 4.208V			
-		else
-		    bq24296_set_vreg(0x25); //VREG 4.096V
-    }     
-#else
-    bq24296_set_vreg(0x2C); //VREG 4.208V
+   upmu_set_rg_bc11_bb_ctrl(1);    //BC11_BB_CTRL    
+      upmu_set_rg_bc11_rst(1);        //BC11_RST
+	
+#if 0 //no use
+    //pull PSEL low
+    mt_set_gpio_mode(GPIO_CHR_PSEL_PIN,GPIO_MODE_GPIO);  
+    mt_set_gpio_dir(GPIO_CHR_PSEL_PIN,GPIO_DIR_OUT);
+    mt_set_gpio_out(GPIO_CHR_PSEL_PIN,GPIO_OUT_ZERO);
 #endif    
+    
+    //pull CE low to enable charging
+    mt_set_gpio_mode(gpio_number,gpio_off_mode);  
+    mt_set_gpio_dir(gpio_number,gpio_on_dir);
+    mt_set_gpio_out(gpio_number,gpio_on_out);
+
+    //battery_xlog_printk(BAT_LOG_FULL, "gpio_number=0x%x,gpio_on_mode=%d,gpio_off_mode=%d\n", gpio_number, gpio_on_mode, gpio_off_mode);	
+
+    bq24296_set_en_hiz(0x0);
+    bq24296_set_vindpm(0x8); //VIN DPM check 4.68V
+    bq24296_set_reg_rst(0x0);
+    bq24296_set_wdt_rst(0x1); //kick watchdog	
+    bq24296_set_sys_min(0x5); //Minimum system voltage 3.5V	
+    bq24296_set_iprechg(0x3); //preCharge Current limit 512mA for bq24296 and 384mA for bq24296M
+    bq24296_set_iterm(0x01); //Termination Current limit 256mA
+    bq24296_set_BHot(0x2);//boost mode thermal protection 65 degrees
+    bq24296_set_vreg(0x35);//Charge Voltage Limit 4.35V  
     bq24296_set_batlowv(0x1); //BATLOWV 3.0V
-    bq24296_set_vrechg(0x0); //VRECHG 0.1V (4.108V)
-    bq24296_set_en_term(0x0); //Enable termination
-    bq24296_set_term_stat(0x0); //Match ITERM
-    bq24296_set_watchdog(0x0); //WDT 40s
-    bq24296_set_en_timer(0x0); //Disable charge timer
+    bq24296_set_vrechg(0x0); //VRECHG 0.1V 
+    bq24296_set_en_term(0x1); //Enable termination
+    bq24296_set_watchdog(0x1); //WDT 40s
+    bq24296_set_en_timer(0x1); //Enable charge timer
+    bq24296_set_chg_timer(0x2);//Fast Chare Timer Setting 12hrs
     bq24296_set_int_mask(0x0); //Disable fault interrupt
-    */
 }
 
 #if 1
@@ -739,11 +732,6 @@ static int temp_CC_value = 0;
 
 void bq24296_charging_enable(kal_uint32 bEnable)
 {
-
-    mt_set_gpio_mode(gpio_number,gpio_on_mode);  
-    mt_set_gpio_dir(gpio_number,gpio_on_dir);
-    mt_set_gpio_out(gpio_number,gpio_on_out);
-
     //TBD: set input current limit depends on connected charger type.
     #if 1
     charging_get_charger_type(&CHR_Type_num);
@@ -767,7 +755,7 @@ void bq24296_charging_enable(kal_uint32 bEnable)
         bq24296_set_iinlim(0x6); //IN current limit at 2A
         //bq24296_set_ac_current();
         //(2000 - 500)/64 = 0x17;
-        bq24296_set_ichg(0x17);  //Fast Charging Current Limit at 2A
+        bq24296_set_ichg(0x18);  //Fast Charging Current Limit at 2A
     }
     else if (CHR_Type_num == CHARGING_HOST)
     {
@@ -786,12 +774,13 @@ void bq24296_charging_enable(kal_uint32 bEnable)
         //bq24296_set_low_chg_current();
     }
     #endif
-       	
 
-    if(KAL_TRUE == bEnable)
-        bq24296_set_chg_config(0x1); // charger enable
-    else
+    bq24296_set_en_hiz(0x0);	        	
+
+    if(KAL_FALSE == bEnable)
         bq24296_set_chg_config(0x0); // charger disable
+    else
+        bq24296_set_chg_config(0x1); // charger enable
 
     dprintf(INFO, "[BATTERY:bq24296] bq24296_set_ac_current(), CC value(%dmA) \r\n", temp_CC_value);
     dprintf(INFO, "[BATTERY:bq24296] charger enable !\r\n");

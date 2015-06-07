@@ -35,11 +35,11 @@
   *
   *********************************************************/
 #define bq24296_SLAVE_ADDR_WRITE   0xD6
-#define bq24296_SLAVE_ADDR_Read    0xD7
+#define bq24296_SLAVE_ADDR_READ    0xD7
 
 static struct i2c_client *new_client = NULL;
 static const struct i2c_device_id bq24296_i2c_id[] = {{"bq24296",0},{}};   
-kal_bool chargin_hw_init_done = KAL_FALSE; 
+kal_bool chargin_hw_init_done = KAL_FALSE;
 static int bq24296_driver_probe(struct i2c_client *client, const struct i2c_device_id *id);
 
 static struct i2c_driver bq24296_driver = {
@@ -278,7 +278,17 @@ void bq24296_set_wdt_rst(kal_uint32 val)
                                     (kal_uint8)(CON1_WDT_RST_MASK),
                                     (kal_uint8)(CON1_WDT_RST_SHIFT)
                                     );
-   	
+}
+
+void bq24296_set_otg_config(kal_uint32 val)
+{
+    kal_uint32 ret=0;    
+
+    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON1), 
+                                    (kal_uint8)(val),
+                                    (kal_uint8)(CON1_OTG_CONFIG_MASK),
+                                    (kal_uint8)(CON1_OTG_CONFIG_SHIFT)
+                                    );
 }
 
 void bq24296_set_chg_config(kal_uint32 val)
@@ -328,7 +338,27 @@ void bq24296_set_ichg(kal_uint32 val)
                                     (kal_uint8)(CON2_ICHG_MASK),
                                     (kal_uint8)(CON2_ICHG_SHIFT)
                                     );
-  		
+}
+
+void bq24296_set_bcold(kal_uint32 val)
+{
+    kal_uint32 ret=0;    
+
+    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON2), 
+                                    (kal_uint8)(val),
+                                    (kal_uint8)(CON2_BCOLD_MASK),
+                                    (kal_uint8)(CON2_BCOLD_SHIFT)
+                                    );
+}
+void bq24296_set_force_20pct(kal_uint32 val)
+{
+    kal_uint32 ret=0;    
+
+    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON2), 
+                                    (kal_uint8)(val),
+                                    (kal_uint8)(CON2_FORCE_20PCT_MASK),
+                                    (kal_uint8)(CON2_FORCE_20PCT_SHIFT)
+                                    );
 }
 
 //CON3----------------------------------------------------
@@ -406,19 +436,6 @@ void bq24296_set_en_term(kal_uint32 val)
                                     (kal_uint8)(CON5_EN_TERM_MASK),
                                     (kal_uint8)(CON5_EN_TERM_SHIFT)
                                     );
-  	
-}
-
-void bq24296_set_term_stat(kal_uint32 val)
-{
-    kal_uint32 ret=0;    
-
-    ret=bq24296_config_interface(   (kal_uint8)(bq24296_CON5), 
-                                    (kal_uint8)(val),
-                                    (kal_uint8)(CON5_TERM_STAT_MASK),
-                                    (kal_uint8)(CON5_TERM_STAT_SHIFT)
-                                    );
-	
 }
 
 void bq24296_set_watchdog(kal_uint32 val)
@@ -497,7 +514,7 @@ void bq24296_set_treg(kal_uint32 val)
 //CON7----------------------------------------------------
 
 
-void bq24296_set_DPDM_en(kal_uint32 val)
+void bq24296_set_DPDM_EN(kal_uint32 val)
 {
     kal_uint32 ret=0;    
 

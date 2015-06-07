@@ -514,14 +514,17 @@ static void pchr_turn_on_charging (void)
         else
         {    
             #ifdef TEMPERATURE_CONTROL_CHARGING 
-			battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY]old temperature = %d, [%d,%d]\r\n", 
+			battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY]battery temperature = %d, [%d,%d]\r\n", 
 			BMT_status.temperature,g_temp_CC_value,g_temp_input_CC_value);
 		if (BMT_status.temperature <= CURRENT_LIMIT_BOUNDARY_TEMPERATURE) //ckt guoyi add CKT low temperature(0-10) protect 2014-3-19
 		{
-                g_temp_CC_value = g_temp_CC_value>AC_LESS_N_DEGRESS_CHARGER_CURRENT?AC_LESS_N_DEGRESS_CHARGER_CURRENT:g_temp_CC_value;
-                g_temp_input_CC_value = g_temp_input_CC_value>AC_LESS_N_DEGRESS_CHARGER_CURRENT?AC_LESS_N_DEGRESS_CHARGER_CURRENT:g_temp_input_CC_value;
-                //g_temp_CC_value =AC_LESS_N_DEGRESS_CHARGER_CURRENT;
-                //g_temp_input_CC_value = AC_LESS_N_DEGRESS_CHARGER_CURRENT;
+                #ifdef BULMA_PROJECT
+                    g_temp_CC_value =AC_LESS_N_DEGRESS_CHARGER_CURRENT;
+                    g_temp_input_CC_value = AC_LESS_N_DEGRESS_CHARGER_CURRENT;
+                #else
+                    g_temp_CC_value = g_temp_CC_value>AC_LESS_N_DEGRESS_CHARGER_CURRENT?AC_LESS_N_DEGRESS_CHARGER_CURRENT:g_temp_CC_value;
+                    g_temp_input_CC_value = g_temp_input_CC_value>AC_LESS_N_DEGRESS_CHARGER_CURRENT?AC_LESS_N_DEGRESS_CHARGER_CURRENT:g_temp_input_CC_value;
+                #endif
 
                 battery_charging_control(CHARGING_CMD_SET_INPUT_CURRENT,&g_temp_input_CC_value);
                 battery_charging_control(CHARGING_CMD_SET_CURRENT,&g_temp_CC_value);
@@ -529,20 +532,38 @@ static void pchr_turn_on_charging (void)
                 cv_voltage = MIN_CURRENT_LIMIT_BOUNDARY_BATTERY; 
                 battery_charging_control(CHARGING_CMD_SET_CV_VOLTAGE,&cv_voltage);
 
-                battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] charging current is set 350mA, CKT low temperature(0-10) protect !\r\n");
+                battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] charging  input_current= %d mA,  current is set to %d mA, CKT battery temperature(0-10) protect !\r\n", g_temp_input_CC_value / 100 , g_temp_CC_value / 100);
 		}
 		else
 		{
                      #ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
-                     g_temp_input_CC_value = g_temp_input_CC_value>AC_LESS_N_NORMAL_CHARGER_CURRENT?AC_LESS_N_NORMAL_CHARGER_CURRENT:g_temp_input_CC_value;
-                     g_temp_CC_value = g_temp_CC_value>AC_LESS_N_NORMAL_CHARGER_CURRENT?AC_LESS_N_NORMAL_CHARGER_CURRENT:g_temp_CC_value;
-                     //g_temp_input_CC_value = AC_LESS_N_NORMAL_CHARGER_CURRENT;
-                     //g_temp_CC_value = AC_LESS_N_NORMAL_CHARGER_CURRENT;
+                        #ifdef BULMA_PROJECT
+                            if(BMT_status.temperature < CURRENT_LIMIT_TEMPERATURE_40_DEGREE)
+                            {// 10~40 degree
+                                g_temp_input_CC_value = AC_LESS_N_NORMAL_CHARGER_CURRENT;
+                                g_temp_CC_value = AC_LESS_N_NORMAL_CHARGER_CURRENT;
+                            }
+                            else if((BMT_status.temperature >= CURRENT_LIMIT_TEMPERATURE_40_DEGREE) && (BMT_status.temperature < CURRENT_LIMIT_TEMPERATURE_43_DEGREE))
+                            {//40~43 degree
+                                g_temp_input_CC_value = CHARGE_CURRENT_1500_00_MA;
+                                g_temp_CC_value = CHARGE_CURRENT_1500_00_MA;
+                            }
+                            else if((BMT_status.temperature >= CURRENT_LIMIT_TEMPERATURE_43_DEGREE) && (BMT_status.temperature < MAX_CHARGE_TEMPERATURE))
+                            {//43~45 degree
+                                g_temp_input_CC_value = CHARGE_CURRENT_1000_00_MA;
+                                g_temp_CC_value = CHARGE_CURRENT_1000_00_MA;
+                            }
+                        #else
+                            g_temp_input_CC_value = g_temp_input_CC_value>AC_LESS_N_NORMAL_CHARGER_CURRENT?AC_LESS_N_NORMAL_CHARGER_CURRENT:g_temp_input_CC_value;
+                            g_temp_CC_value = g_temp_CC_value>AC_LESS_N_NORMAL_CHARGER_CURRENT?AC_LESS_N_NORMAL_CHARGER_CURRENT:g_temp_CC_value;                        
+                        #endif
                      #endif
 			
        		battery_charging_control(CHARGING_CMD_SET_INPUT_CURRENT,&g_temp_input_CC_value);
 			battery_charging_control(CHARGING_CMD_SET_CURRENT,&g_temp_CC_value);
 
+                   battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] charging input_current= %d mA, current is set to %d mA, CKT battery temperature(10-45) protect !\r\n", g_temp_input_CC_value / 100 , g_temp_CC_value / 100);
+                   
 			/*Set CV Voltage*/
 			#if !defined(MTK_JEITA_STANDARD_SUPPORT)            
 	            cv_voltage = MAX_CURRENT_LIMIT_BOUNDARY_BATTERY;
