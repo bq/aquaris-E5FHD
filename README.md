@@ -2,7 +2,7 @@ WHAT IS THIS?
 =============
 
 Linux Kernel source code for the devices:
-* bq aquaris E5 FullHD
+* bq aquaris E5 FHD
 
 
 BUILD INSTRUCTIONS?
@@ -11,22 +11,41 @@ BUILD INSTRUCTIONS?
 Specific sources are separated by branches and each version is tagged with it's corresponding number. First, you should
 clone the project:
 
-        $ git clone git@github.com:bq/aquaris-E5FHD.git
+        $ git clone https://github.com/bq/aquaris-E5FHD.git
 
 After it, choose the version you would like to build:
 
+*Aquaris E5 FHD *
 
-*Aquaris E5 FHD*
-
-        $ cd aquaris-E5FHD/
+        $ mv aquaris-E5FHD kernel
+        $ cd kernel
         $ git checkout aquaris-E5FHD
 
+At the same level of the "kernel" directory:
+
+Download a prebuilt gcc
+
+        $ git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+
+Create KERNEL_OUT dir:
+
+        $ mkdir KERNEL_OUT
+
+Your directory tree should look like this:
+* kernel
+* arm-eabi-4.8
+* KERNEL_OUT
 
 Finally, build the kernel according the next table of product names:
 
-| device                                                                                | product                                                               |
+| device                    | product                 |
 | --------------------------|-------------------------|
-| bq aquaris E5 Full HD                 | vegetafhd                     |
+| bq aquaris E5 FHD         | vegetafhd               |
 
-        $ ./makeMtk -t {product} n k
 
+        $ make -C kernel  O=../KERNEL_OUT  ARCH=arm CROSS_COMPILE=../arm-eabi-4.8/bin/arm-eabi- {product}_defconfig
+        $ make O=../KERNEL_OUT/ -C kernel ARCH=arm  CROSS_COMPILE=../arm-eabi-4.8/bin/arm-eabi-                       
+    
+You can specify "-j CORES" argument to speed-up your compilation, example:
+
+        $ make O=../KERNEL_OUT/ -C kernel ARCH=arm  CROSS_COMPILE=../arm-eabi-4.8/bin/arm-eabi- -j 8
